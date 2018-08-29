@@ -44,6 +44,7 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		for (FileStatus file: listStatus(job))
 		{
 		      Path path = file.getPath();
+		      System.out.println("Processing file: " + path);
 		      FileSystem fs = path.getFileSystem(job.getConfiguration());
 		      long length = file.getLen();
 		      BlockLocation[] blkLocations = fs.getFileBlockLocations(file, 0, length);
@@ -60,7 +61,8 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 
 		    	  try
 		    	  {//Process one pcap file
-			    	  PcapUtilities.checkPcapHeader(fileIn, message -> { LOG.debug(message); } );
+			    	  PcapUtilities.checkPcapHeader(fileIn);
+			    	  long bytesRead = PcapUtilities.PCAP_HEADER_SIZE;
 	
 			    	  long bytesRemaining = length;
 			    	  long startOfSplit = PcapUtilities.PCAP_HEADER_SIZE;
@@ -72,7 +74,9 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 			    		  while (splitCurrentSize < splitSize)
 			    		  {
 			    			  int packetLen = PcapUtilities.readPacketHeader(fileIn);
-			    			  fileIn.seek(packetLen);
+			    			  bytesRead += PcapUtilities.PACKET_HEADER_SIZE + packetLen;
+			    			  
+			    			  fileIn.seek(bytesRead);//absolute, not relative
 			    			  splitCurrentSize += PcapUtilities.PACKET_HEADER_SIZE + packetLen;
 			    		  }
 			    		  
@@ -90,17 +94,19 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		    	  }//Process one pcap file - end
 		    	  catch (PcapInputFormatException e)//try to process other pcaps if this one is invalid 
 		    	  {
-		    		  LOG.debug(e.getMessage());
+		    		  LOG.error(e.getMessage());
 		    	  }
 
 		    	  fileIn.close();
 		      }
 		      else if (length != 0) //if it is unsplitable
     		  {
+		    	  LOG.info("File is not splitable");
     			  splits.add(new FileSplit(path, PcapUtilities.PCAP_HEADER_SIZE, length - PcapUtilities.PCAP_HEADER_SIZE, blkLocations[0].getHosts()));
     		  }
     		  else //if it is zero length file
     		  { 
+    			  LOG.info("File iz zero lenght");
     			  //Create empty hosts array for zero length files
     			  splits.add(new FileSplit(path, 0, length, new String[0]));
     		  }
@@ -110,5 +116,4 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		LOG.debug("Total # of splits: " + splits.size());
 		return splits;
 	}
-	
 }

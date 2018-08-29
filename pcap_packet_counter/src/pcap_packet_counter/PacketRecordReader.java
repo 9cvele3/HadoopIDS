@@ -120,7 +120,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 				} 
 				catch (PcapInputFormatException e) 
 				{
-					LOG.debug(e.getMessage());
+					LOG.error(e.getMessage());
 					return false;
 				}
 			}

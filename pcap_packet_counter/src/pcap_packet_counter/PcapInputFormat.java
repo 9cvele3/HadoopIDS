@@ -44,10 +44,11 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		for (FileStatus file: listStatus(job))
 		{
 		      Path path = file.getPath();
-		      System.out.println("Processing file: " + path);
 		      FileSystem fs = path.getFileSystem(job.getConfiguration());
 		      long length = file.getLen();
 		      BlockLocation[] blkLocations = fs.getFileBlockLocations(file, 0, length);
+		      
+		      System.out.println("Processing file: " + path + " length in bytes: " + length);
 		      
 		      if (
 		    		  (length != 0) 						// not a zero length file
@@ -64,56 +65,60 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 			    	  PcapUtilities.checkPcapHeader(fileIn);
 			    	  long bytesRead = PcapUtilities.PCAP_HEADER_SIZE;
 	
-			    	  long bytesRemaining = length;
+			    	  long bytesRemaining = length - PcapUtilities.PCAP_HEADER_SIZE;
 			    	  long startOfSplit = PcapUtilities.PCAP_HEADER_SIZE;
 			    	  
-			    	  while ((double) bytesRemaining / splitSize > SPLIT_SLOP)
+			    	  while ((double) bytesRemaining / limitForSpliting > SPLIT_SLOP)
 			    	  {
 			    		  long splitCurrentSize = 0;
 			    		  
-			    		  while (splitCurrentSize < splitSize)
+			    		  while (splitCurrentSize < limitForSpliting)
 			    		  {
+			    			  fileIn.seek(bytesRead);//absolute, not relative
+			    			  
 			    			  int packetLen = PcapUtilities.readPacketHeader(fileIn);
+			    			  //System.out.println(packetLen);
 			    			  bytesRead += PcapUtilities.PACKET_HEADER_SIZE + packetLen;
 			    			  
-			    			  fileIn.seek(bytesRead);//absolute, not relative
 			    			  splitCurrentSize += PcapUtilities.PACKET_HEADER_SIZE + packetLen;
 			    		  }
 			    		  
 			    		  int blkIndex = getBlockIndex(blkLocations, startOfSplit + splitCurrentSize);
 			    		  splits.add(new FileSplit(path, startOfSplit, splitCurrentSize, blkLocations[blkIndex].getHosts()));
+			    		  LOG.info("Added new InputSplit. Start offset: " + startOfSplit + " size in bytes: " + splitCurrentSize);
 			    		  startOfSplit += splitCurrentSize;
 			    		  bytesRemaining -= splitCurrentSize;
 			    	  }
 
 		    		  if (bytesRemaining != 0) 
 			    	  {
+		    			  LOG.info("Last chunk of file as separate InputSplit. Size in bytes: " + bytesRemaining);
 			    		  splits.add(new FileSplit(path, length-bytesRemaining, bytesRemaining, 
 			                     blkLocations[blkLocations.length-1].getHosts()));
 			    	  }
 		    	  }//Process one pcap file - end
 		    	  catch (PcapInputFormatException e)//try to process other pcaps if this one is invalid 
 		    	  {
-		    		  LOG.error(e.getMessage());
+		    		  LOG.error("PcapInputFormat: " + e.getMessage());
 		    	  }
 
 		    	  fileIn.close();
 		      }
 		      else if (length != 0) //if it is unsplitable
     		  {
-		    	  LOG.info("File is not splitable");
+		    	  LOG.info("PcapInputFormat: File is not splitable");
     			  splits.add(new FileSplit(path, PcapUtilities.PCAP_HEADER_SIZE, length - PcapUtilities.PCAP_HEADER_SIZE, blkLocations[0].getHosts()));
     		  }
     		  else //if it is zero length file
     		  { 
-    			  LOG.info("File iz zero lenght");
+    			  LOG.info("PcapInputFormat: File iz zero lenght");
     			  //Create empty hosts array for zero length files
     			  splits.add(new FileSplit(path, 0, length, new String[0]));
     		  }
 
 		}//for
 		
-		LOG.debug("Total # of splits: " + splits.size());
+		LOG.info("PcapInputFormat. Total # of splits: " + splits.size());
 		return splits;
 	}
 }

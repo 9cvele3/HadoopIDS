@@ -9,6 +9,7 @@ import org.junit.Assert;
 public class TestRule {
 	private String ruleExample = "alert tcp $EXTERNAL_NET any -> $HOME_NET 7597 ( msg:\"MALWARE-BACKDOOR QAZ Worm Client Login access\"; flow:to_server,established; content:\"qazwsx.hsq\"; metadata:ruleset community; reference:mcafee,98775; classtype:misc-activity; sid:108; rev:11; )";
 	private String ruleExampleBytes = "alert tcp any any -> any 443 (msg:\"Heartbeat request\"; content:\"|18 03 02 00|\"; sid:100000;)";
+	
 	@Test
 	public void RuleCreation(){
 		String parsedRule = Parser.parseSingleSnortRule(ruleExample);

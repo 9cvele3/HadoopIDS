@@ -76,7 +76,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	    fileIn = fs.open(split.getPath());
 	    
 	    //seek to the start of the input split, skip pcap header
-	    //start += PcapUtilities.PCAP_HEADER_SIZE;
+	    //System.out.println("Start of split: " + start);
+	    //start += PcapUtilities.PCAP_HEADER_SIZE;//This is not needed
 	    fileIn.seek(start);
 	    this.pos = start;
 	}
@@ -84,12 +85,15 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	@Override
 	public boolean nextKeyValue() 
 			throws IOException, InterruptedException {
-		if(pos >= end)
+		
+		if (pos >= end)
 		{
 			return false;
 		}
 		else
 		{
+			fileIn.seek(pos);
+			
 			{//keyPacketOffset
 				if (keyPacketOffset == null)
 				{
@@ -103,7 +107,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 				try 
 				{
 					int len = PcapUtilities.readPacketHeader(fileIn);
-														
+			//		System.out.println("PackerRecordReader len: " + len);
+					
 					if (valuePacketBytes == null)
 					{
 						valuePacketBytes = new BytesWritable();
@@ -120,7 +125,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 				} 
 				catch (PcapInputFormatException e) 
 				{
-					LOG.error(e.getMessage());
+					LOG.error("PcapRecordReader: " + e.getMessage());
 					return false;
 				}
 			}

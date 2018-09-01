@@ -7,8 +7,17 @@ public enum Protocol {
 	NOT_SUPPORTED;
 	
 	public static Protocol getProtocol(String protocolName) {
-		if(protocolName.equalsIgnoreCase("tcp")) return Protocol.TCP;
-		if(protocolName.equalsIgnoreCase("udp")) return Protocol.UDP;
+		
+		if(protocolName.equalsIgnoreCase("tcp"))
+		{
+			return Protocol.TCP;
+		}
+		
+		if(protocolName.equalsIgnoreCase("udp")) 
+		{
+			return Protocol.UDP;
+		}
+		
 		return Protocol.NOT_SUPPORTED;
 	}
 }

@@ -19,20 +19,23 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
-public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable> {
+public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable> 
+{
 	private static final Log LOG = LogFactory.getLog(FileInputFormat.class);
 
 	private static final double SPLIT_SLOP = 1.1;   // 10% slop
 	
 	@Override
 	public RecordReader<LongWritable, BytesWritable> createRecordReader(InputSplit arg0, TaskAttemptContext arg1)
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException 
+	{
 		return new PacketRecordReader();
 	}
 
 	@Override
 	public List<InputSplit> getSplits(JobContext job) 
-			throws IOException {
+			throws IOException 
+	{
 
 		long minSize = Math.max(getFormatMinSplitSize(), getMinSplitSize(job));
 	    long maxSize = getMaxSplitSize(job);

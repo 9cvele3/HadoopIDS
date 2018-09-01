@@ -14,7 +14,8 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
-public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable> {
+public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable> 
+{
 	private static final Log LOG = LogFactory.getLog(RecordReader.class);
 
 	private long start;
@@ -28,7 +29,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	
 	@Override
 	public void close() 
-			throws IOException {
+			throws IOException 
+	{
 		if (fileIn != null)
 		{
 			fileIn.close();
@@ -37,19 +39,22 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 
 	@Override
 	public LongWritable getCurrentKey() 
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException 
+	{
 		return keyPacketOffset;
 	}
 
 	@Override
 	public BytesWritable getCurrentValue() 
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException 
+	{
 		return valuePacketBytes;
 	}
 
 	@Override
 	public float getProgress() 
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException 
+	{
 	    if (start == end) 
 	    {
 	        return 0.0f;
@@ -62,7 +67,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 
 	@Override
 	public void initialize(InputSplit genericSplit, TaskAttemptContext context) 
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException 
+	{
 		
 		FileSplit split = (FileSplit) genericSplit;
 	    Configuration job = context.getConfiguration();
@@ -84,7 +90,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 
 	@Override
 	public boolean nextKeyValue() 
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException 
+	{
 		
 		if (pos >= end)
 		{
@@ -95,33 +102,32 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 			fileIn.seek(pos);
 			
 			{//keyPacketOffset
-				if (keyPacketOffset == null)
-				{
-					keyPacketOffset = new LongWritable();
-				}
-				
-				keyPacketOffset.set(pos);
+				keyPacketOffset = new LongWritable(pos);
 			}
 			
 			{//valuePacketBytes
 				try 
 				{
 					int len = PcapUtilities.readPacketHeader(fileIn);
+					pos += PcapUtilities.PACKET_HEADER_SIZE;
+					fileIn.seek(pos);
 			//		System.out.println("PackerRecordReader len: " + len);
 					
-					if (valuePacketBytes == null)
-					{
-						valuePacketBytes = new BytesWritable();
-					}
+					valuePacketBytes = new BytesWritable();
 					
 					//valuePacketBytes.setCapacity(len);
 					//valuePacketBytes.setSize(len);
-					
 					byte[] payload = new byte[len];
 					fileIn.read(payload, 0, len);
+					valuePacketBytes.setSize(len);
 					valuePacketBytes.set(payload, 0, len);
 					
-					pos += PcapUtilities.PACKET_HEADER_SIZE + len;
+					if(valuePacketBytes.getLength() != len)
+					{
+						LOG.error("Length does not match!");
+					}
+					
+					pos += len;
 				} 
 				catch (PcapInputFormatException e) 
 				{

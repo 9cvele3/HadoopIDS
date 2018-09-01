@@ -6,10 +6,12 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class CounterReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
+public class CounterReducer extends Reducer<Text, LongWritable, Text, LongWritable> 
+{
 	@Override
 	public void reduce(Text key, Iterable<LongWritable> values, Context context) 
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException 
+	{
 		long numOccur = 0;
 		
 		for(LongWritable value: values)

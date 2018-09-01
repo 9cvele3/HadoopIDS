@@ -30,7 +30,7 @@ public class TestParser {
 	public void byteMatching(){
 		char[] text = new char[]{12, 43, 23, 11, 10, 123, 23, 13, 15};
 		char[] pattern = new char[]{11, 10, 123, 23};
-		Assert.assertTrue(MyersAlgorithm.Myers(text, pattern, 0));
+		Assert.assertTrue(MyersAlgorithm.Myers(text, 0, text.length, pattern, 0));
 	}
 	
 	//@Test
@@ -53,6 +53,6 @@ public class TestParser {
 		char[] expected = new char[] {24, 3, 2, 0};
 		Assert.assertArrayEquals(expected, Parser.convertContentToCharArray(content));
 		char[] payload = new char[] {32, 123, 24, 3, 2, 0, 15};
-		Assert.assertTrue(MyersAlgorithm.Myers(payload, 4, Parser.createBitmask(expected)));
+		Assert.assertTrue(MyersAlgorithm.Myers(payload, 0, payload.length, 4, Parser.createBitmask(expected)));
 	}
 }

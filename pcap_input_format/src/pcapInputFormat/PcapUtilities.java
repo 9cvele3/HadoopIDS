@@ -4,7 +4,8 @@ import java.io.IOException;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 
-public class PcapUtilities {
+public class PcapUtilities 
+{
 
 	public final static int PCAP_HEADER_SIZE = 24; //size in bytes
 	public final static int PACKET_HEADER_SIZE = 16; //size in bytes
@@ -57,7 +58,8 @@ public class PcapUtilities {
         guint32 network;        // data link type
 	} pcap_hdr_t;
 	 */
-	public static void checkPcapHeader(FSDataInputStream fs) throws IOException, PcapInputFormatException
+	public static void checkPcapHeader(FSDataInputStream fs) 
+			throws IOException, PcapInputFormatException
 	{
 		int magicNumber = ntohl(fs.readInt());
 			
@@ -99,7 +101,8 @@ public class PcapUtilities {
         guint32 orig_len;       // actual length of packet
 	} pcaprec_hdr_t;
 	*/
-	public static int readPacketHeader(FSDataInputStream fs) throws IOException, PcapInputFormatException
+	public static int readPacketHeader(FSDataInputStream fs) 
+			throws IOException, PcapInputFormatException
 	{
 		/*int ts_sec 	=*/ 	fs.readInt();
 		/*int ts_usec 	=*/		fs.readInt();

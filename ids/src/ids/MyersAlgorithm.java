@@ -2,29 +2,41 @@ package ids;
 
 import snortRulesParser.Parser;
 
-public class MyersAlgorithm {
+public class MyersAlgorithm 
+{
 
-	public static boolean Myers(char[] text, char[] pattern){
-		return Myers(text, pattern, 0);
+	public static boolean Myers(char[] text, int startOffset, int searchLen, char[] pattern)
+	{
+		return Myers(text, startOffset, searchLen, pattern, 0);
 	}
 	
-	public static boolean Myers(char[] text, char[] pattern, int tollerance){
+	public static boolean Myers(char[] text, int startOffset, int searchLen, char[] pattern, int tollerance)
+	{
 		int[] bitMask = Parser.createBitmask(pattern);
-		return Myers(text, pattern.length, bitMask, tollerance);		
+		return Myers(text, startOffset, searchLen, pattern.length, bitMask, tollerance);		
 	}
 
-	public static boolean Myers(char[] text, int patternLength, int[] patternBitmask){
-		return Myers(text, patternLength, patternBitmask, 0);
+	public static boolean Myers(char[] text, int startOffset, int searchLen, int patternLength, int[] patternBitmask)
+	{
+		return Myers(text, startOffset, searchLen, patternLength, patternBitmask, 0);
 	}
 	
-	public static boolean Myers(char[] text, int patternLength, int[] patternBitmask, int tollerance){
+	public static boolean Myers(char[] text, int startOffset, int searchLen, int patternLength, int[] patternBitmask, int tollerance)
+	{
 		int score = patternLength;
-		int n = text.length;
+		
+		if( text.length < searchLen)
+		{
+			System.err.println("Invalid searchLen: " + searchLen + " total len: " + text.length);
+			return false;
+		}
+		
 		int occurenceCheck = 1 << (patternLength - 1);
 		int VP = ~0;
 		int VN = 0;
 		
-		for(int i = 0; i < n; i++){			
+		for(int i = startOffset; i < searchLen; i++)
+		{			
 			char currChar = text[i];
 			int X = patternBitmask[currChar] | VN;
 				
@@ -35,16 +47,22 @@ public class MyersAlgorithm {
 			VN = X & D0;
 			VP = (HN << 1) | ~(X | D0);
 			
-			if((HP & occurenceCheck) != 0){
+			if((HP & occurenceCheck) != 0)
+			{
 				score++;
 			}
-			if((HN & occurenceCheck) != 0){
+			
+			if((HN & occurenceCheck) != 0)
+			{
 				score--;
 			}
-			if(score <= tollerance){
+			
+			if(score <= tollerance)
+			{
 				return true;
 			}
 		}
+		
 		return false;
 	}
 }

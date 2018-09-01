@@ -1,8 +1,11 @@
 package pcapInputFormat;
 
-public class PcapInputFormatException extends Exception {
+public class PcapInputFormatException 
+	extends Exception 
+{
 
-	public PcapInputFormatException(String string) {
+	public PcapInputFormatException(String string) 
+	{
 		super(string);
 	}
 

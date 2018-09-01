@@ -2,7 +2,8 @@ package ids;
 
 import java.util.StringTokenizer;
 
-public class Rule {
+public class Rule 
+{
 	private String sid;
 	private Protocol protocol;
 	
@@ -16,7 +17,8 @@ public class Rule {
 	
 	private int[] bitmask = null;//new int[256];
 	
-	public Rule(String line){
+	public Rule(String line)
+	{
 		StringTokenizer st = new StringTokenizer(line);
 		String fieldSeparator = ";";
 		sid = st.nextToken(fieldSeparator);
@@ -29,14 +31,20 @@ public class Rule {
 		destPort = st.nextToken(fieldSeparator);
 		
 		patternLength = Integer.parseInt(st.nextToken(fieldSeparator));
-		if(patternLength != 0) {
+		
+		if(patternLength != 0) 
+		{
 			bitmask = new int[256];
+		
 			for(int i = 0; i < 256; i++)
+			{
 				bitmask[i] = Integer.parseInt(st.nextToken(fieldSeparator));
+			}
 		}
 	}
 	
-	public boolean checkSrcAndDest(String SrcIP, String DestIP, String SrcPort, String DestPort) {
+	public boolean checkSrcAndDest(String SrcIP, String DestIP, String SrcPort, String DestPort) 
+	{
 		return 
 					(srcIP.equalsIgnoreCase("any") 		|| srcIP.equalsIgnoreCase(SrcIP))
 				&&	(destIP.equalsIgnoreCase("any") 	|| destIP.equalsIgnoreCase(DestIP))
@@ -44,9 +52,28 @@ public class Rule {
 				&&	(destPort.equalsIgnoreCase("any") 	|| destPort.equalsIgnoreCase(DestPort));
 	}
 	
-	public boolean payloadMatch(char[] packetPayload){
-		if(patternLength == 0)  return true;
-		return MyersAlgorithm.Myers(packetPayload, patternLength, bitmask);
+	public boolean payloadMatch(char[] packetPayload, int payloadOffset, int payloadLen)
+	{
+		if (patternLength == 0)
+		{
+			return true;
+		}
+		else
+		{
+			return MyersAlgorithm.Myers(packetPayload, payloadOffset, payloadLen, patternLength, bitmask);
+		}
+	}
+	
+	public boolean payloadMatch(char[] packetPayload)
+	{
+		if (patternLength == 0)
+		{
+			return true;
+		}
+		else
+		{
+			return MyersAlgorithm.Myers(packetPayload, 0, packetPayload.length, patternLength, bitmask);
+		}
 	}
 	
 	public String getSid() { return sid; }

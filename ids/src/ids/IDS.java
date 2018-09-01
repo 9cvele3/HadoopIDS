@@ -11,11 +11,19 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import pcapInputFormat.PcapInputFormat;
 
-public class IDS extends Configured implements Tool{
 
-	public static void main(String[] args) throws Exception{
-		if(args.length < 2) {
+public class IDS 
+	extends Configured 
+	implements Tool
+{
+
+	public static void main(String[] args) 
+			throws Exception
+	{
+		if(args.length < 2) 
+		{
 			System.err.println("Usage: IDS -files cached-rules.txt <inputpath> <outputpath>");
 			System.exit(-1);
 		}
@@ -38,18 +46,24 @@ public class IDS extends Configured implements Tool{
 	}
 
 	@Override
-	public int run(String[] args) throws Exception {
+	public int run(String[] args) 
+			throws Exception 
+	{
 		Job job = Job.getInstance();
 		job.setJarByClass(IDS.class);
 		job.setJobName("IDS");
 		
-		System.out.println("Argumenti " + args[0] + " " + args[1]);
+		System.out.println("Arguments " + args[0] + " " + args[1]);
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 		
 		job.setMapperClass(IDSMapper.class);
 		job.setCombinerClass(IDSReducer.class);
 		job.setReducerClass(IDSReducer.class);
+		
+		job.setInputFormatClass(PcapInputFormat.class);
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(LongWritable.class);
 		
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(LongWritable.class);

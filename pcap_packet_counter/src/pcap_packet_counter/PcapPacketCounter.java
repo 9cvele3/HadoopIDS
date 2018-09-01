@@ -11,15 +11,19 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import pcapInputFormat.PcapInputFormat;
 
-public class PcapPacketCounter {
+public class PcapPacketCounter 
+{
 
-	public static void main(String[] args) {
-		if(args.length != 2) {
+	public static void main(String[] args) 
+	{
+		if(args.length != 2) 
+		{
 			System.err.println("Usage: CreateFile <inputpath> <outputpath>");
 			System.exit(-1);
 		}
 		
-		try {
+		try 
+		{
 			Job job = Job.getInstance();
 			job.setJarByClass(PcapPacketCounter.class);
 			job.setJobName("PcapPacketCounter");
@@ -37,11 +41,16 @@ public class PcapPacketCounter {
 			
 			System.exit(job.waitForCompletion(true) ? 0 : 1);
 		}
-		catch (IOException e) {
+		catch (IOException e) 
+		{
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
+		}
+		catch (ClassNotFoundException e) 
+		{
 			e.printStackTrace();
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e) 
+		{
 			e.printStackTrace();
 		}
 	}

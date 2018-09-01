@@ -25,9 +25,12 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 	String SourcePort = "";
 	String DestPort = "";
 	
-	char[] payloadBytes = null;
+	String delimiter = ", ";
 	
-	private final String delimiter = ",";
+	int payloadOffset = 0;
+	int payloadLen = 0;
+	byte[] packetBytes = null;
+
 	private final LongWritable ONE = new LongWritable(1);
 	
 	@Override
@@ -70,21 +73,41 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 		}
 	}
 	
-	int payloadOffset = 0;
-	Protocol p;
-	int payloadLen = 0;
-	byte[] packetBytes = null;
-	
+	private void checkForPatterns(Context context) throws IOException, InterruptedException {
+
+//		System.out.println("checkForPatterns");
+		
+		if(packetBytes == null) 
+		{
+			System.out.println("packetBytes is null");
+			return;		
+		}
+		
+		if(protocol == Protocol.NOT_SUPPORTED) 
+		{
+			System.out.println("Protocol is not supported");
+			return;
+		}
+		
+		List<Rule> ruleList = rules.get(protocol);
+		
+		if(ruleList != null && !ruleList.isEmpty()) 
+		{
+			for(Rule r : ruleList)
+			{
+				if(r.checkSrcAndDest(SourceIP, DestIP, SourcePort, DestPort) && r.payloadMatch(packetBytes)/*, payloadOffset, payloadLen)*/)
+				{
+					context.write(new Text(r.getSid() + delimiter + SourceIP + ":" + r.getSrcPort() + delimiter + DestIP + ":" + r.getDestPort()), ONE);
+				}
+			}
+		}
+	}
+		
 	final int MAC_ADDRESS_LEN_IN_BYTES = 6;
 	final int ETHER_TYPE_IP = 0x0800;
 	final int IP_PROTO_TCP = 0x06;
 	final int IP_PROTO_UDP = 0x11;
-	
-	private int convertToUnsignedInt(byte b)
-	{
-		return b < 0 ? 256 + b : b;
-	}
-	
+		
 	private boolean decodePacket()
 	{
 		if (packetBytes == null) 
@@ -94,7 +117,7 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 		
 		payloadOffset = 0;
 		payloadLen = 0;
-		p = Protocol.NOT_SUPPORTED;
+		protocol = Protocol.NOT_SUPPORTED;
 		
 		//ethernet
 		{
@@ -133,74 +156,48 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 			tmpPayloadOffset += (1 /*protocol*/ + 2 /*checksum*/);
 			
 			//src ip
-			SourceIP = convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
-						+ convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
-						+ convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
-						+ convertToUnsignedInt(packetBytes[tmpPayloadOffset++]);
+			SourceIP = Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
+						+ Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
+						+ Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
+						+ Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]);
 			//dst ip
-			DestIP =  convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
-						+ convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
-						+ convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
-						+ convertToUnsignedInt(packetBytes[tmpPayloadOffset++]);
+			DestIP =  Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
+						+ Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
+						+ Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + "." 
+						+ Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]);
 			//options
 			payloadOffset += ipHeaderLen;
 		}
 		
 		if (ipProto == IP_PROTO_TCP)
 		{
-			//port, port
+			//ports
 			int tmpPayloadOffset = payloadOffset;
 			
-			SourcePort = "" + (256 * convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + convertToUnsignedInt(packetBytes[tmpPayloadOffset++]));			
-			DestPort = ""  + (256 * convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + convertToUnsignedInt(packetBytes[tmpPayloadOffset++]));
+			SourcePort = "" + (256 * Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]));			
+			DestPort = ""  + (256 * Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]));
 			
 			tmpPayloadOffset += 8;
 
 			int tcpHeaderLen = 4 * (packetBytes[tmpPayloadOffset]);
 			payloadOffset += tcpHeaderLen;
 			payloadLen -= tcpHeaderLen;
-			p = Protocol.TCP;
+			protocol = Protocol.TCP;
 		}
 		else
 		{
-			//port, port	
+			//ports
 			int tmpPayloadOffset = payloadOffset;
-			SourcePort = "" + (256 * convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + convertToUnsignedInt(packetBytes[tmpPayloadOffset++]));
-			DestPort = ""  + (256 * convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + convertToUnsignedInt(packetBytes[tmpPayloadOffset++]));
+			SourcePort = "" + (256 * Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]));
+			DestPort = ""  + (256 * Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]) + Utils.convertToUnsignedInt(packetBytes[tmpPayloadOffset++]));
 			
 //			int udpPacketLen = 256 * packetBytes[tmpPayloadOffset++] + packetBytes[tmpPayloadOffset++];
 			payloadOffset += 8;
 			payloadLen -= 8;
-			p = Protocol.UDP;
+			protocol = Protocol.UDP;
 		}
 		
-		//System.out.println(SourceIP + " " + SourcePort + "  " + DestIP + " " + DestPort);
+//			System.out.println(SourceIP + " " + SourcePort + "  " + DestIP + " " + DestPort);
 		return true;
-	}
-	
-	private void checkForPatterns(Context context) throws IOException, InterruptedException {
-		
-		if(payloadBytes == null) 
-		{
-			return;		
-		}
-		
-		if(protocol == Protocol.NOT_SUPPORTED) 
-		{
-			return;
-		}
-		
-		List<Rule> ruleList = rules.get(protocol);
-		
-		if(ruleList != null && !ruleList.isEmpty()) 
-		{
-			for(Rule r : ruleList)
-			{
-				if(r.checkSrcAndDest(SourceIP, DestIP, SourcePort, DestPort) && r.payloadMatch(payloadBytes, payloadOffset, payloadLen))
-				{
-					context.write(new Text(r.getSid() + delimiter + SourceIP + ":" + r.getSrcPort() + delimiter + DestIP + ":" + r.getDestPort()), ONE);
-				}
-			}
-		}
-	}
+	}	
 }

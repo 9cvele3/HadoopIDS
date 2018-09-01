@@ -9,7 +9,7 @@ public class MyersAlgorithm
 	{
 		return Myers(text, startOffset, searchLen, pattern, 0);
 	}
-	
+		
 	public static boolean Myers(char[] text, int startOffset, int searchLen, char[] pattern, int tollerance)
 	{
 		int[] bitMask = Parser.createBitmask(pattern);
@@ -59,10 +59,12 @@ public class MyersAlgorithm
 			
 			if(score <= tollerance)
 			{
+//				System.out.println("Myers found");
 				return true;
 			}
 		}
 		
+//		System.out.println("Myers not found");
 		return false;
 	}
 }

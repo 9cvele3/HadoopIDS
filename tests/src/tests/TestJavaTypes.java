@@ -9,9 +9,8 @@ public class TestJavaTypes {
 	@Test
 	public void test()
 	{
-		byte b = -18;
-		
-		char c = (char) b;
-		Assert.assertEquals(127, c);
+		int i = 0xaa;
+		byte b = (byte)i;
+		Assert.assertEquals(127, b);
 	}
 }

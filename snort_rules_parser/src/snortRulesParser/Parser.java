@@ -15,8 +15,14 @@ public class Parser
 	
 	public static void main(String[] args) 
 	{
-		String snortRulesFilePath = "rules.rules";
-		String reducedSnortRules  = "cached-rules.txt";
+		if(args.length != 2)
+		{
+			System.err.println("Arguments: <input_snort_rule_file> <output_parsed_file>");
+			return;
+		}
+		
+		String snortRulesFilePath = args[0];
+		String reducedSnortRules  = args[1];
 		parseSnortRules(snortRulesFilePath, reducedSnortRules);
 		System.out.println("Parser finished!");
 	}
@@ -28,6 +34,9 @@ public class Parser
 		
 		BufferedReader br = null;
 		FileWriter fw = null;
+		
+		int numParsedRules = 0;
+		
 		try 
 		{
 			br = new BufferedReader(new FileReader(rules));
@@ -43,6 +52,7 @@ public class Parser
 				{
 					fw.write(parseSingleSnortRule(readLine));
 					fw.write("\n");
+					numParsedRules++;
 				}
 			}
 
@@ -68,6 +78,7 @@ public class Parser
 			{
 				e.printStackTrace();
 			}
+			
 			try 
 			{
 				if(fw != null)
@@ -79,6 +90,8 @@ public class Parser
 			{
 				e.printStackTrace();
 			}
+			
+			System.out.println("Parsed rules: " + numParsedRules);
 		}
 	}
 	

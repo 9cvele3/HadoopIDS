@@ -1,4 +1,4 @@
-package pcap_packet_counter;
+package pcapInputFormat;
 
 public class PcapInputFormatException extends Exception {
 

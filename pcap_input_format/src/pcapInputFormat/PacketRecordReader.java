@@ -1,4 +1,4 @@
-package pcap_packet_counter;
+package pcapInputFormat;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

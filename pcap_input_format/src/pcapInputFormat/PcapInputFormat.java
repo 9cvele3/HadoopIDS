@@ -1,4 +1,4 @@
-package pcap_packet_counter;
+package pcapInputFormat;
 
 import java.io.IOException;
 import java.util.ArrayList;

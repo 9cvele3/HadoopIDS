@@ -9,6 +9,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+import pcapInputFormat.PcapInputFormat;
+
 public class PcapPacketCounter {
 
 	public static void main(String[] args) {

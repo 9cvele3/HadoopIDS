@@ -49,7 +49,8 @@ public class IDS
 	public int run(String[] args) 
 			throws Exception 
 	{
-		Job job = Job.getInstance();
+		//Job job = Job.getInstance();
+		Job job = Job.getInstance(getConf());
 		job.setJarByClass(IDS.class);
 		job.setJobName("IDS");
 		

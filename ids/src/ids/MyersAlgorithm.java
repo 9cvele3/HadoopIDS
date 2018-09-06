@@ -2,9 +2,8 @@ package ids;
 
 import snortRulesParser.Parser;
 
-public class MyersAlgorithm 
+public final class MyersAlgorithm
 {
-
 	public static boolean Myers(char[] text, int startOffset, int searchLen, char[] pattern)
 	{
 		return Myers(text, startOffset, searchLen, pattern, 0);
@@ -38,7 +37,7 @@ public class MyersAlgorithm
 		for(int i = startOffset; i < searchLen; i++)
 		{			
 			char currChar = text[i];
-			int X = patternBitmask[currChar] | VN;
+			int X = patternBitmask[(int) currChar] | VN;
 				
 			int D0 = ((VP + (X & VP)) ^ VP) | X;
 			int HN = VP & D0;

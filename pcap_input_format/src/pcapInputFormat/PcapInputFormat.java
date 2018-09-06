@@ -71,11 +71,11 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 			    	  long bytesRemaining = length - PcapUtilities.PCAP_HEADER_SIZE;
 			    	  long startOfSplit = PcapUtilities.PCAP_HEADER_SIZE;
 			    	  
-			    	  while ((double) bytesRemaining / limitForSpliting > SPLIT_SLOP)
+			    	  while ((double) bytesRemaining / splitSize > SPLIT_SLOP)
 			    	  {
 			    		  long splitCurrentSize = 0;
 			    		  
-			    		  while (splitCurrentSize < limitForSpliting)
+			    		  while (splitCurrentSize < splitSize)
 			    		  {
 			    			  fileIn.seek(bytesRead);//absolute, not relative
 			    			  

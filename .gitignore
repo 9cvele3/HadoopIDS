@@ -1,0 +1,9 @@
+*.class
+*.settings
+/.recommenders/
+/.metadata/
+
+*.txt
+*.rules
+exported/
+

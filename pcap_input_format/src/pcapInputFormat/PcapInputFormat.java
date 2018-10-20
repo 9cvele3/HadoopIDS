@@ -25,6 +25,8 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 
 	private static final double SPLIT_SLOP = 1.1;   // 10% slop
 	
+	private static final int MB = 1024 * 1024;
+	
 	@Override
 	public RecordReader<LongWritable, BytesWritable> createRecordReader(InputSplit arg0, TaskAttemptContext arg1)
 			throws IOException, InterruptedException 
@@ -123,5 +125,52 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		
 		LOG.info("PcapInputFormat. Total # of splits: " + splits.size());
 		return splits;
+	}
+	
+	private int seekForBoundary()
+	{
+		byte[] arr = new byte[10 * MB];
+		
+		for (int offset = 0; offset <= PcapUtilities.MAX_PACKET_LEN; offset++)
+		{
+			if(seek(arr, offset))
+				return offset;
+		}
+		
+		return -1;//Exception
+	}
+	
+	/*
+	 * Gets int value from bytes arr at position offset.
+	 */
+	private int getIntFromByteArray(byte[] arr, int offset)
+	{
+		return ((((arr[offset] << 8) + arr[offset + 1]) << 8) + arr[offset + 2]) << 8 + arr[offset + 3];
+	}
+	
+	/*
+	 * Returns true if packet boundary is at offset, false otherwise.
+	 */
+	private boolean seek(byte[] arr, int offset)
+	{
+		int currOffset = offset + 4 + 4;
+		boolean validBoundary = true;
+		int tollerance = 25;
+		int numFound = 0;
+		
+		while (validBoundary && numFound < tollerance && currOffset < arr.length)
+		{
+			int len = getIntFromByteArray(arr, currOffset);
+			int origLen = getIntFromByteArray(arr, currOffset + 4);
+			
+			validBoundary &= len <= origLen;
+			validBoundary &= len <= PcapUtilities.MAX_PACKET_LEN;
+			validBoundary &= len >= PcapUtilities.MIN_PACKET_LEN;
+			
+			currOffset += (PcapUtilities.PACKET_HEADER_SIZE + len);
+			numFound++;
+		}
+		
+		return numFound == tollerance;
 	}
 }

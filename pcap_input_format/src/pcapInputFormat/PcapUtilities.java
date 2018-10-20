@@ -13,6 +13,7 @@ public class PcapUtilities
 	public final static int PCAPNG_MAGIC_LITTLE_ENDIAN = 0x0a0d0d0a;
 	//public final static int DATA_LINK_TYPE_ETHERNET = 1;
 	public final static int MAX_PACKET_LEN = 524288;
+	public final static int MIN_PACKET_LEN = 48;
 	
 	/**
 	 * Converts big endian int to little endian int

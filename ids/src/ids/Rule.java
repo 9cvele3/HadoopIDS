@@ -1,5 +1,6 @@
 package ids;
-
+import utils.Utils;
+import utils.Protocol;
 import java.util.StringTokenizer;
 
 public class Rule 

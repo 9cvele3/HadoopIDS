@@ -1,7 +1,9 @@
 package pcapInputFormat;
+import utils.*;
 
 import java.io.IOException;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.hadoop.fs.FSDataInputStream;
 
 public class PcapUtilities 
@@ -14,40 +16,7 @@ public class PcapUtilities
 	//public final static int DATA_LINK_TYPE_ETHERNET = 1;
 	public final static int MAX_PACKET_LEN = 524288;
 	public final static int MIN_PACKET_LEN = 48;
-	
-	/**
-	 * Converts big endian int to little endian int
-	 * @param bigEndian - 32b int big endian value
-	 * @return 32b int little endian value
-	 */
-	public static int ntohl(int bigEndian)
-	{
-		int littleEndian = 0;
-		
-		for(int i = 0; i < 4; i++)
-		{
-			littleEndian = littleEndian << 8;
-			littleEndian |= (bigEndian & 0xff);
-			bigEndian = bigEndian >> 8;
-		}
-		
-		return littleEndian;
-	}
 
-	/**
-	 * Converts big endian short to little endian short
-	 * @param bigEndian - 16b short big endian value
-	 * @return 16b short little endian value
-	 */
-	public static short ntohs(short bigEndian)
-	{
-		short littleEndian = 0;
-		littleEndian |= (bigEndian & 0xff);
-		littleEndian = (short) (littleEndian << 8);
-		bigEndian = (short) (bigEndian >> 8);
-		littleEndian |= (bigEndian & 0xff);
-		return littleEndian;
-	}
 	/*
 	typedef struct pcap_hdr_s {
         guint32 magic_number;   // magic number 
@@ -62,7 +31,7 @@ public class PcapUtilities
 	public static void checkPcapHeader(FSDataInputStream fs) 
 			throws IOException, PcapInputFormatException
 	{
-		int magicNumber = ntohl(fs.readInt());
+		int magicNumber = Utils.ntohl(fs.readInt());
 			
 		if (magicNumber != PCAP_MAGIC_LITTLE_ENDIAN )
 		{
@@ -107,7 +76,7 @@ public class PcapUtilities
 	{
 		/*int ts_sec 	=*/ 	fs.readInt();
 		/*int ts_usec 	=*/		fs.readInt();
-		int incl_len 	=		ntohl(fs.readInt());
+		int incl_len 	=		Utils.ntohl(fs.readInt());
 		//int orig_len 	= 	fs.readInt();
 
 		//System.out.println("ts_sec: " + ts_sec + " ts_usec: " + ts_usec + " incl_len: " + incl_len + " orig_len: " + orig_len);

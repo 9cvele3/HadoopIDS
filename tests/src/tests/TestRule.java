@@ -1,8 +1,7 @@
 package tests;
-
+import utils.Protocol;
 import org.junit.Test;
 import snortRulesParser.Parser;
-import ids.Protocol;
 import ids.Rule;
 import org.junit.Assert;
 

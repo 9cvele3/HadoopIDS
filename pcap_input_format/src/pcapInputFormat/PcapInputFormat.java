@@ -1,5 +1,6 @@
 package pcapInputFormat;
 import utils.*;
+import pcap.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		      else if (length != 0) //if it is unsplitable
     		  {
 		    	  LOG.info("PcapInputFormat: File is not splitable");
-    			  splits.add(new FileSplit(path, PcapUtilities.PCAP_HEADER_SIZE, length - PcapUtilities.PCAP_HEADER_SIZE, blkLocations[0].getHosts()));
+    			  splits.add(new FileSplit(path, pcap.PcapUtils.PCAP_HEADER_SIZE, length - pcap.PcapUtils.PCAP_HEADER_SIZE, blkLocations[0].getHosts()));
     		  }
     		  else //if it is zero length file
     		  { 
@@ -91,11 +92,11 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 
 		  try
 		  {//Process one pcap file
-			  PcapUtilities.checkPcapHeader(fileIn);
-			  long bytesRead = PcapUtilities.PCAP_HEADER_SIZE;
+			  PcapUtils.checkPcapHeader(fileIn);
+			  long bytesRead = pcap.PcapUtils.PCAP_HEADER_SIZE;
 
-			  long bytesRemaining = length - PcapUtilities.PCAP_HEADER_SIZE;
-			  long startOfSplit = PcapUtilities.PCAP_HEADER_SIZE;
+			  long bytesRemaining = length - pcap.PcapUtils.PCAP_HEADER_SIZE;
+			  long startOfSplit = pcap.PcapUtils.PCAP_HEADER_SIZE;
 			  
 			  while ((double) bytesRemaining / splitSize > SPLIT_SLOP)
 			  {
@@ -105,11 +106,11 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 				  {
 					  fileIn.seek(bytesRead);//absolute, not relative
 					  
-					  int packetLen = PcapUtilities.readPacketHeader(fileIn);
+					  int packetLen = PcapUtils.readPacketHeader(fileIn);
 					  //System.out.println(packetLen);
-					  bytesRead += PcapUtilities.PACKET_HEADER_SIZE + packetLen;
+					  bytesRead += pcap.PcapUtils.PACKET_HEADER_SIZE + packetLen;
 					  
-					  splitCurrentSize += PcapUtilities.PACKET_HEADER_SIZE + packetLen;
+					  splitCurrentSize += pcap.PcapUtils.PACKET_HEADER_SIZE + packetLen;
 				  }
 				  
 				  int blkIndex = getBlockIndex(blkLocations, startOfSplit + splitCurrentSize);
@@ -126,7 +127,7 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		                 blkLocations[blkLocations.length-1].getHosts()));
 			  }
 		  }//Process one pcap file - end
-		  catch (PcapInputFormatException e)//try to process other pcaps if this one is invalid 
+		  catch (PcapException e)//try to process other pcaps if this one is invalid 
 		  {
 			  LOG.error("PcapInputFormat: " + e.getMessage());
 		  }
@@ -142,11 +143,11 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		  {//Process one pcap file
 			  long searchChunkSize = 10 * MB;
 			  long skipLen = splitSize - searchChunkSize;
-			  PcapUtilities.checkPcapHeader(fileIn);
-			  long bytesRead = 0;
+			  PcapUtils.checkPcapHeader(fileIn);
+			  long bytesRead = PcapUtils.PCAP_HEADER_SIZE;
 
 			  long bytesRemaining = length - bytesRead;
-			  long startOfSplit = PcapUtilities.PCAP_HEADER_SIZE;
+			  long startOfSplit = PcapUtils.PCAP_HEADER_SIZE;
 			  
 			  byte[] tmp = new byte[(int)searchChunkSize];
 	
@@ -155,7 +156,7 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 				  bytesRead += skipLen;
 				  //fileIn.seek(bytesRead);
 				  fileIn.read(bytesRead, tmp, 0, (int)searchChunkSize);
-				  long localOffset = seekForBoundary(tmp);
+				  long localOffset = PcapUtils.seekForBoundary(tmp);
 				  long splitCurrentSize =  skipLen + localOffset;
 				  System.out.println("localOffset: " + localOffset + " startOfSplit: " + startOfSplit + " splitCurrentSize: " + splitCurrentSize);
 				  				  
@@ -174,93 +175,16 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		                 blkLocations[blkLocations.length-1].getHosts()));
 			  }
 		  }//Process one pcap file - end
-		  catch (PcapInputFormatException e)//try to process other pcaps if this one is invalid 
+		  catch (pcap.PcapException e)//try to process other pcaps if this one is invalid 
 		  {
 			  LOG.error("PcapInputFormat: " + e.getMessage());
 		  }
 
 		  fileIn.close();
 	}
-	
-	private long seekForBoundary(byte[] arr) throws PcapInputFormatException
-	{	
-		for (int offset = 0; offset <= 810 /*PcapUtilities.MAX_PACKET_LEN*/; offset++)
-		{
-			if(seek(arr, offset))
-				return offset;
-		}
-		
-		throw new PcapInputFormatException("Boundary was not found!");
-	}
 
 	public int convertToUnsignedInt(byte b)
 	{
 		return b < 0 ? (256 + b) : b;
-	}
-	
-	/*
-	 * Gets int value from bytes arr at position offset.
-	 */
-	private int getIntFromByteArray(byte[] arr, int offset)
-	{
-		int res = convertToUnsignedInt(arr[offset + 3]) 	<< 8;		//System.out.print(" " + res);
-		res = (res + convertToUnsignedInt(arr[offset + 2])) << 8;		//System.out.print(" " + res);
-		res = (res + convertToUnsignedInt(arr[offset + 1])) << 8;		//System.out.print(" " + res);
-		res = (res + convertToUnsignedInt(arr[offset]));				//System.out.print(" " + res);
-		
-		return res;
-	}
-	
-	private int getEtherTypeFromByteArray(byte[] arr, int offset)
-	{
-		//System.out.println("Short: " + arr[offset] + " " + arr[offset + 1]);
-		int res = convertToUnsignedInt(arr[offset]) << 8;
-		res = (res + convertToUnsignedInt(arr[offset + 1]));
-		return res;
-	}
-	
-	/*
-	 * Returns true if packet boundary is at offset, false otherwise.
-	 */
-	private boolean seek(byte[] arr, int offset)
-	{
-		//System.out.println("\nSeek at offset : " + offset);
-		int currOffset = offset;
-		int packetOffset = offset + PcapUtilities.PACKET_HEADER_SIZE;
-		boolean validBoundary = true;
-		int tollerance = 50;
-		int numFound = 0;
-		
-		while (validBoundary && numFound < tollerance && packetOffset < arr.length)
-		{
-			currOffset = currOffset + 4 + 4; //skip timestamps
-			int len = getIntFromByteArray(arr, currOffset);
-			int origLen = getIntFromByteArray(arr, currOffset + 4);
-			
-			validBoundary &= (origLen > 0);
-			validBoundary &= (len <= origLen);
-			validBoundary &= (len <= PcapUtilities.MAX_PACKET_LEN);
-			validBoundary &= (len >= PcapUtilities.MIN_PACKET_LEN);
-			
-
-			//if (packetOffset+ len > arr.length)
-				//break;
-			
-			int etherType = getEtherTypeFromByteArray(arr, packetOffset + 12);
-			System.out.println("offset: " + offset + "len: " + len + " origLen: " + origLen + " etherType: " + etherType);
-
-			if (etherType < 1500)
-				validBoundary &= (len == (12 + 2 + etherType + 4));
-			else
-				validBoundary &= PcapUtils.checkEtherType(etherType);
-			
-			currOffset = packetOffset + len;
-			packetOffset = currOffset + PcapUtilities.PACKET_HEADER_SIZE;
-			numFound++;
-		}
-		
-		//System.out.println("Seek end");
-		
-		return numFound == tollerance;
-	}
+	}	
 }

@@ -14,6 +14,8 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+import pcap.*;
+
 public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable> 
 {
 	private static final Log LOG = LogFactory.getLog(RecordReader.class);
@@ -108,8 +110,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 			{//valuePacketBytes
 				try 
 				{
-					int len = PcapUtilities.readPacketHeader(fileIn);
-					pos += PcapUtilities.PACKET_HEADER_SIZE;
+					int len = PcapUtils.readPacketHeader(fileIn);
+					pos += PcapUtils.PACKET_HEADER_SIZE;
 					fileIn.seek(pos);
 			//		System.out.println("PackerRecordReader len: " + len);
 					
@@ -129,7 +131,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 					
 					pos += len;
 				} 
-				catch (PcapInputFormatException e) 
+				catch (PcapException e) 
 				{
 					LOG.error("PcapRecordReader: " + e.getMessage());
 					return false;

@@ -46,4 +46,17 @@ public final class Utils {
 		return littleEndian;
 	}
 	
+	/*
+	 * Gets int value from bytes arr at position offset.
+	 */
+	public static int getIntFromByteArray(byte[] arr, int offset)
+	{
+		int res = convertToUnsignedInt(arr[offset + 3]) 	<< 8;		//System.out.print(" " + res);
+		res = (res + convertToUnsignedInt(arr[offset + 2])) << 8;		//System.out.print(" " + res);
+		res = (res + convertToUnsignedInt(arr[offset + 1])) << 8;		//System.out.print(" " + res);
+		res = (res + convertToUnsignedInt(arr[offset]));				//System.out.print(" " + res);
+		
+		return res;
+	}
+	
 }

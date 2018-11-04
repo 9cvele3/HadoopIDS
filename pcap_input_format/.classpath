@@ -105,5 +105,6 @@
 	<classpathentry kind="lib" path="/home/osboxes/Downloads/hadoop-2.9.0/share/hadoop/common/lib/xmlenc-0.52.jar"/>
 	<classpathentry kind="lib" path="/home/osboxes/Downloads/hadoop-2.9.0/share/hadoop/common/lib/xz-1.0.jar"/>
 	<classpathentry kind="lib" path="/home/osboxes/Downloads/hadoop-2.9.0/share/hadoop/common/lib/zookeeper-3.4.6.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/utils"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

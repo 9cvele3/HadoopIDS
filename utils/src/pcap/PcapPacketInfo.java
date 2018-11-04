@@ -1,4 +1,6 @@
-package utils;
+package pcap;
+
+import utils.Utils;
 
 public class PcapPacketInfo {
 	public int etherType;
@@ -11,6 +13,7 @@ public class PcapPacketInfo {
 	public int srcPort;
 	public int dstPort;
 	
+	int packetStart = 0;
 	int payloadOffset = 0;
 	int payloadLen = 0;
 	byte[] packetBytes = null;
@@ -20,22 +23,39 @@ public class PcapPacketInfo {
 		this.packetBytes = packetBytes;
 	}
 	
+	private PcapPacketInfo(byte[] packetBytes, int packetStart)
+	{
+		this.packetBytes = packetBytes;
+		this.packetStart = packetStart;
+		this.payloadOffset = packetStart;
+	}
+	
 	public static PcapPacketInfo decode(byte[] packetBytes)
 	{
-		PcapPacketInfo res = decodeEthernet(packetBytes);
+		return decode(packetBytes, 0);
+	}
+	
+	public static PcapPacketInfo decode(byte[] packetBytes, int packetStart)
+	{
+		PcapPacketInfo res = decodeEthernet(packetBytes, packetStart);
 		decodeIP(res);
 		decodeTransportLayer(res);
-		return res;
+		return res;		
 	}
 	
 	public static PcapPacketInfo decodeEthernet(byte[] packetBytes)
 	{
-		PcapPacketInfo res = new PcapPacketInfo(packetBytes);
+		return decodeEthernet(packetBytes, 0);
+	}
+	
+	public static PcapPacketInfo decodeEthernet(byte[] packetBytes, int offset)
+	{
+		PcapPacketInfo res = new PcapPacketInfo(packetBytes, offset);
 		
 		res.payloadOffset += 2 * PcapUtils.MAC_ADDRESS_LEN_IN_BYTES;
 		res.etherType = 256 * packetBytes[res.payloadOffset] + packetBytes[res.payloadOffset + 1];
 					
-		if(res.etherType != PcapUtils.ETHER_TYPE_IP)
+		if(!PcapUtils.checkEtherType(res.etherType))
 		{
 			//System.out.println("Not IP:" + etherType + " " + payloadOffset + " " + packetBytes.length);
 			return null;
@@ -50,7 +70,7 @@ public class PcapPacketInfo {
 
 	public static void decodeIP(PcapPacketInfo res)
 	{
-		if (res != null)
+		if (res != null && res.etherType == PcapUtils.ETHER_TYPE_IP)
 		{
 			//ip
 			{

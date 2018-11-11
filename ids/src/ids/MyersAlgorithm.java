@@ -24,9 +24,11 @@ public final class MyersAlgorithm
 	{
 		int score = patternLength;
 		
-		if( text.length < searchLen)
+		System.out.println("Myers: " + startOffset + " " + searchLen + " text.len: " + text.length);
+		
+		if (text.length < searchLen + startOffset)
 		{
-			System.err.println("Invalid searchLen: " + searchLen + " total len: " + text.length);
+			System.err.println("Myers algorithm: Invalid searchLen: " + searchLen + " total len: " + text.length);
 			return false;
 		}
 		
@@ -34,7 +36,7 @@ public final class MyersAlgorithm
 		int VP = ~0;
 		int VN = 0;
 		
-		for(int i = startOffset; i < searchLen; i++)
+		for(int i = startOffset; i < startOffset + searchLen; i++)
 		{			
 			char currChar = text[i];
 			int X = patternBitmask[(int) currChar] | VN;

@@ -14,6 +14,9 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
+import pcap.PcapPacketInfo;
+import pcap.PcapUtils;
+
 public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWritable> 
 {
 	HashMap<Protocol, List<Rule>> rules = new HashMap<Protocol, List<Rule>>();
@@ -56,44 +59,50 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 	{
 		byte[] packetBytes = value.getBytes();
 		PcapPacketInfo packet = PcapPacketInfo.decode(packetBytes);
-		checkForPatterns(context);
+		checkForPatterns(packet, context);
 	}
 	
-	private void checkForPatterns(Context context) throws IOException, InterruptedException {
-
-//		System.out.println("checkForPatterns");
-		
-		if(packetBytes == null) 
+	private void checkForPatterns(PcapPacketInfo packet, Context context) 
+			throws IOException, InterruptedException 
+	{
+		if (packet == null) 
 		{
-			System.out.println("packetBytes is null");
+			System.out.println("packet is null");
 			return;		
 		}
 		
-		if(protocol == Protocol.NOT_SUPPORTED) 
+		List<Rule> ruleList = null;
+		
+		if (packet.ipProto == PcapUtils.IP_PROTO_TCP)
 		{
-			System.out.println("Protocol is not supported");
+			ruleList = rules.get(Protocol.TCP);
+		}
+		else if (packet.ipProto == PcapUtils.IP_PROTO_UDP)
+		{
+			ruleList = rules.get(Protocol.UDP);
+		}
+		else 
+		{
+			System.out.println("Protocol is not supported: " + packet.ipProto);
 			return;
 		}
 		
-		List<Rule> ruleList = rules.get(protocol);
-		
-		if(ruleList != null && !ruleList.isEmpty()) 
+		if (ruleList != null && !ruleList.isEmpty()) 
 		{
-			for(Rule r : ruleList)
+			for (Rule r : ruleList)
 			{
-				if (
-							r.checkSrcAndDest(SourceIP, DestIP, SourcePort, DestPort) 
-						&& 	r.payloadMatch(packetBytes)/*, payloadOffset, payloadLen)*/
-					)
+				if (r.checkAgainstPacket(packet))
 				{
-					context.write(new Text(r.getSid() + delimiter + SourceIP + ":" + r.getSrcPort() + delimiter + DestIP + ":" + r.getDestPort()), ONE);
+					context.write(
+						new Text(
+									r.getSid() + delimiter + packet.srcIP + ":" 
+								+ 	r.getSrcPort() + delimiter + packet.dstIP 
+								+ 	":" + r.getDestPort()
+						),
+						ONE
+					);
 				}
 			}
 		}
-	}
-	
-	private Text getReducerKey(PcapPacketInfo packet)
-	{
-		return new Text();
 	}
 }

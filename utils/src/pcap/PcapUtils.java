@@ -36,7 +36,7 @@ public final class PcapUtils {
 	private static boolean seek(byte[] arr, int offset)
 	{
 		//System.out.println("\nSeek at offset : " + offset);
-		int tollerance = 15;
+		int tollerance = 25;
 		int numFound = 0;
 		
 		WholePcapPacketInfo curr = null;
@@ -121,7 +121,7 @@ public final class PcapUtils {
 		//int orig_len 	= 	fs.readInt();
 
 		//System.out.println("ts_sec: " + ts_sec + " ts_usec: " + ts_usec + " incl_len: " + incl_len + " orig_len: " + orig_len);
-		System.out.println("incl_len: " + incl_len);
+		//System.out.println("incl_len: " + incl_len);
 		
 		if (incl_len > PcapUtils.MAX_PACKET_LEN)
 		{

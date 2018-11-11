@@ -144,10 +144,10 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 			  long searchChunkSize = 10 * MB;
 			  long skipLen = splitSize - searchChunkSize;
 			  PcapUtils.checkPcapHeader(fileIn);
+			  
 			  long bytesRead = PcapUtils.PCAP_HEADER_SIZE;
-
+			  long startOfSplit = PcapUtils.PCAP_HEADER_SIZE; //Pcap Header is excluded from InputSplit
 			  long bytesRemaining = length - bytesRead;
-			  long startOfSplit = PcapUtils.PCAP_HEADER_SIZE;
 			  
 			  byte[] tmp = new byte[(int)searchChunkSize];
 	

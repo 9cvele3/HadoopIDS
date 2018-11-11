@@ -3,6 +3,8 @@ import utils.Utils;
 import utils.Protocol;
 import java.util.StringTokenizer;
 
+import pcap.PcapPacketInfo;
+
 public class Rule 
 {
 	private String sid;
@@ -93,6 +95,12 @@ public class Rule
 	{
 		return payloadMatch(packetPayload, 0, packetPayload.length);
 	}
+
+	public boolean checkAgainstPacket(PcapPacketInfo packet)
+	{
+		return		checkSrcAndDest(packet.srcIP, packet.dstIP, Integer.toString(packet.srcPort), Integer.toString(packet.dstPort)) 
+				&& 	payloadMatch(packet.packetBytes, packet.payloadOffset, packet.payloadLen);
+	}
 	
 	public String getSid() { return sid; }
 	public Protocol getProtocol() {return protocol;}
@@ -101,4 +109,5 @@ public class Rule
 	public String getDestIP() { return destIP; }
 	public String getDestPort() { return destPort; }
 	public int getPatternLength() { return patternLength;}
+	
 }

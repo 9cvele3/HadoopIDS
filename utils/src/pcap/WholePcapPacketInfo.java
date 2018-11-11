@@ -8,13 +8,13 @@ public class WholePcapPacketInfo{
 	private WholePcapPacketInfo(byte[] packetData)
 	{
 		offset = 0;
-		pcapPacketInfo = PcapPacketInfo.decode(packetData);
+		pcapPacketInfo = PcapPacketInfo.decodeEthernet(packetData);
 	}
 	
 	private WholePcapPacketInfo(byte[] packetData, int offset)
 	{
 		this.offset = offset;
-		pcapPacketInfo = PcapPacketInfo.decode(packetData, offset + PcapUtils.PACKET_HEADER_SIZE);
+		pcapPacketInfo = PcapPacketInfo.decodeEthernet(packetData, offset + PcapUtils.PACKET_HEADER_SIZE);
 	}
 	
 	public static WholePcapPacketInfo decode(byte[] packetData)

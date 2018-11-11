@@ -28,21 +28,15 @@ public class IDS
 			System.exit(-1);
 		}
 		
-		int res = ToolRunner.run(new Configuration(), new IDS(), args);
-		System.exit(res);
-		/*
-		try {
-		} catch (IOException e) {
+		try	
+		{
+			int res = ToolRunner.run(new Configuration(), new IDS(), args);
+			System.exit(res);
+		
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
+		} 
 	}
 
 	@Override

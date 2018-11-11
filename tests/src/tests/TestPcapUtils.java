@@ -21,6 +21,8 @@ public class TestPcapUtils {
 		Assert.assertEquals(PcapUtils.IP_PROTO_UDP, packet.ipProto);
 		Assert.assertEquals(137, packet.srcPort);
 		Assert.assertEquals(137, packet.dstPort);
+		Assert.assertEquals(42, packet.payloadOffset);
+		Assert.assertEquals(68, packet.payloadLen);
 	}
 	
 	@Test
@@ -33,7 +35,8 @@ public class TestPcapUtils {
 		Assert.assertEquals("172.16.121.2", packet.dstIP);
 		Assert.assertEquals(PcapUtils.IP_PROTO_UDP, packet.ipProto);
 		Assert.assertEquals(137, packet.srcPort);
-		Assert.assertEquals(137, packet.dstPort);		
+		Assert.assertEquals(137, packet.dstPort);
+		Assert.assertEquals(68, packet.payloadLen);
 	}
 	
 	@Test

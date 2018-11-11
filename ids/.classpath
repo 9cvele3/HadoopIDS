@@ -38,5 +38,6 @@
 	<classpathentry kind="lib" path="/home/osboxes/Downloads/hadoop-2.9.0/share/hadoop/hdfs/hadoop-hdfs-native-client-2.9.0-tests.jar"/>
 	<classpathentry kind="lib" path="/home/osboxes/Downloads/hadoop-2.9.0/share/hadoop/hdfs/hadoop-hdfs-nfs-2.9.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/pcap_input_format"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/utils"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

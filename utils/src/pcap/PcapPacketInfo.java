@@ -13,10 +13,10 @@ public class PcapPacketInfo {
 	public int srcPort;
 	public int dstPort;
 	
-	int packetStart = 0;
-	int payloadOffset = 0;
-	int payloadLen = 0;
-	byte[] packetBytes = null;
+	public int packetStart = 0;
+	public int payloadOffset = 0;
+	public int payloadLen = 0;
+	public byte[] packetBytes = null;
 	
 	private PcapPacketInfo(byte[] packetBytes)
 	{
@@ -57,12 +57,10 @@ public class PcapPacketInfo {
 					
 		if(!PcapUtils.checkEtherType(res.etherType))
 		{
-			//System.out.println("Not IP:" + etherType + " " + payloadOffset + " " + packetBytes.length);
 			return null;
 		}
 		else
 		{
-			//System.out.println("IP");
 			res.payloadOffset += 2;
 			return res;
 		}
@@ -81,14 +79,7 @@ public class PcapPacketInfo {
 				
 
 				res.ipProto = res.packetBytes[tmpPayloadOffset];
-/*				System.out.println("ipProto: " + ipProto);
-				
-				if (res.protocol != PcapUtils.IP_PROTO_TCP && res.roto != PcapUtils.IP_PROTO_UDP)
-				{
-//					System.out.println("Neither tcp or udp: " + ipProto + " " + tmpPayloadOffset);
-					return false;
-				}
-*/
+//				System.out.println("ipProto: " + ipProto);
 				
 				tmpPayloadOffset += (1 /*protocol*/ + 2 /*checksum*/);
 				

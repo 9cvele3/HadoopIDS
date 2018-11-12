@@ -55,21 +55,23 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 	
 	@Override
 	public void map(LongWritable key, BytesWritable value, Context context) 
-			throws IOException, InterruptedException 
+			throws IOException, InterruptedException
 	{
 		byte[] packetBytes = value.getBytes();
+		assert value.getLength() == packetBytes.length;
+		
 		PcapPacketInfo packet = PcapPacketInfo.decode(packetBytes);
-		checkForPatterns(packet, context);
+		
+		if (packet != null)
+		{
+			checkForPatterns(packet, context);
+		}
 	}
 	
 	private void checkForPatterns(PcapPacketInfo packet, Context context) 
 			throws IOException, InterruptedException 
 	{
-		if (packet == null) 
-		{
-			System.out.println("packet is null");
-			return;		
-		}
+		assert packet != null;
 		
 		List<Rule> ruleList = null;
 		
@@ -83,7 +85,7 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 		}
 		else 
 		{
-			System.out.println("Protocol is not supported: " + packet.ipProto);
+			//System.out.println("Protocol is not supported: " + packet.ipProto);
 			return;
 		}
 		

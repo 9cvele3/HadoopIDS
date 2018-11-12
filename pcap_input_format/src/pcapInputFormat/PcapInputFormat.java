@@ -65,8 +65,8 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		    	  long blockSize = file.getBlockSize();
 		    	  long splitSize = computeSplitSize(blockSize, minSize, maxSize);
 		
-		    	//  deterministicBoundarySearch(splits, path, fs, length, blkLocations, splitSize);
-		    	  probabilisticBoundarySearch(splits, path, fs, length, blkLocations, splitSize);
+		    	  deterministicBoundarySearch(splits, path, fs, length, blkLocations, splitSize);
+		    	 // probabilisticBoundarySearch(splits, path, fs, length, blkLocations, splitSize);
 		      }
 		      else if (length != 0) //if it is unsplitable
     		  {

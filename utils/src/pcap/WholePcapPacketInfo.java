@@ -4,17 +4,18 @@ import utils.Utils;
 
 public class WholePcapPacketInfo{
 	PcapPacketInfo pcapPacketInfo;
-	
-	private WholePcapPacketInfo(byte[] packetData)
-	{
-		offset = 0;
-		pcapPacketInfo = PcapPacketInfo.decodeEthernet(packetData);
-	}
+	byte[] packetData = null;
 	
 	private WholePcapPacketInfo(byte[] packetData, int offset)
 	{
 		this.offset = offset;
-		pcapPacketInfo = PcapPacketInfo.decodeEthernet(packetData, offset + PcapUtils.PACKET_HEADER_SIZE);
+		this.packetData = packetData;
+	}
+	
+	private WholePcapPacketInfo(byte[] packetData, int offset, int packetLen)
+	{
+		this.offset = offset;
+		pcapPacketInfo = PcapPacketInfo.decodeEthernet(packetData, offset + PcapUtils.PACKET_HEADER_SIZE, packetLen);
 	}
 	
 	public static WholePcapPacketInfo decode(byte[] packetData)
@@ -38,11 +39,13 @@ public class WholePcapPacketInfo{
 	{
 		boolean validBoundary = true;
 		
-		validBoundary &= (pcapPacketInfo != null);
 		validBoundary &= (origLen > 0);
 		validBoundary &= (len <= origLen);
 		validBoundary &= (len <= PcapUtils.MAX_PACKET_LEN);
 		validBoundary &= (len >= PcapUtils.MIN_PACKET_LEN);
+		
+		pcapPacketInfo = PcapPacketInfo.decodeEthernet(packetData, offset + PcapUtils.PACKET_HEADER_SIZE, len);
+		validBoundary &= (pcapPacketInfo != null);
 		
 		return validBoundary;
 	}

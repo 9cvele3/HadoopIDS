@@ -113,7 +113,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 					int len = PcapUtils.readPacketHeader(fileIn);
 					pos += PcapUtils.PACKET_HEADER_SIZE;
 					fileIn.seek(pos);
-			//		System.out.println("PackerRecordReader len: " + len);
+					//System.out.println("PackerRecordReader len: " + len);
 					
 					valuePacketBytes = new BytesWritable();
 					
@@ -121,7 +121,11 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 					//valuePacketBytes.setSize(len);
 					byte[] payload = new byte[len];
 					fileIn.read(payload, 0, len);
+				
+					//both are needed, otherwise different size for byte[] tmp = valuePacketBytes.getBytes()
+					valuePacketBytes.setCapacity(len); 
 					valuePacketBytes.setSize(len);
+					
 					valuePacketBytes.set(payload, 0, len);
 					
 					if(valuePacketBytes.getLength() != len)

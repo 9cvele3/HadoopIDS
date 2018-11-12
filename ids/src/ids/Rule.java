@@ -1,6 +1,8 @@
 package ids;
 import utils.Utils;
 import utils.Protocol;
+
+import java.io.IOException;
 import java.util.StringTokenizer;
 
 import pcap.PcapPacketInfo;
@@ -96,8 +98,12 @@ public class Rule
 		return payloadMatch(packetPayload, 0, packetPayload.length);
 	}
 
-	public boolean checkAgainstPacket(PcapPacketInfo packet)
+	public boolean checkAgainstPacket(PcapPacketInfo packet) 
+			throws IOException
 	{
+		if (packet.payloadLen < 0)
+			throw new IOException("payloadLen invalid");
+		
 		return		checkSrcAndDest(packet.srcIP, packet.dstIP, Integer.toString(packet.srcPort), Integer.toString(packet.dstPort)) 
 				&& 	payloadMatch(packet.packetBytes, packet.payloadOffset, packet.payloadLen);
 	}

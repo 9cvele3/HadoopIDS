@@ -24,11 +24,15 @@ public final class MyersAlgorithm
 	{
 		int score = patternLength;
 		
-		System.out.println("Myers: " + startOffset + " " + searchLen + " text.len: " + text.length);
+		//System.out.println("Myers: " + startOffset + " " + searchLen + " text.len: " + text.length);
 		
-		if (text.length < searchLen + startOffset)
+		if (
+				text.length < searchLen + startOffset
+				|| startOffset >= text.length
+				|| startOffset < 0
+				|| searchLen < 0
+			)
 		{
-			System.err.println("Myers algorithm: Invalid searchLen: " + searchLen + " total len: " + text.length);
 			return false;
 		}
 		

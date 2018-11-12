@@ -195,6 +195,7 @@ public final class PcapUtils {
 			0x8848, /* ETHERTYPE_MPLS_MULTI */
 			0x8863, /* ETHERTYPE_PPPOED		*/
 			0x8864, /* ETHERTYPE_PPPOES		*/
+			0x88cc,	/* LLDP	- missing in libpcap */
 			0x9000, /* ETHERTYPE_LOOPBACK	*/
 			
 	};

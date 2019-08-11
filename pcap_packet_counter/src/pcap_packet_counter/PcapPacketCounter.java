@@ -13,7 +13,6 @@ import pcapInputFormat.PcapInputFormat;
 
 public class PcapPacketCounter 
 {
-
 	public static void main(String[] args) 
 	{
 		if(args.length != 2) 

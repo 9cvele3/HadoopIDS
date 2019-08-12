@@ -6,7 +6,8 @@ public final class MyersAlgorithm
 {
 	public static boolean Myers(char[] text, int startOffset, int searchLen, char[] pattern)
 	{
-		return Myers(text, startOffset, searchLen, pattern, 0);
+		int tollerance = 0;
+		return Myers(text, startOffset, searchLen, pattern, tollerance);
 	}
 		
 	public static boolean Myers(char[] text, int startOffset, int searchLen, char[] pattern, int tollerance)
@@ -17,7 +18,8 @@ public final class MyersAlgorithm
 
 	public static boolean Myers(char[] text, int startOffset, int searchLen, int patternLength, int[] patternBitmask)
 	{
-		return Myers(text, startOffset, searchLen, patternLength, patternBitmask, 0);
+		int tollerance = 0;
+		return Myers(text, startOffset, searchLen, patternLength, patternBitmask, tollerance);
 	}
 	
 	public static boolean Myers(char[] text, int startOffset, int searchLen, int patternLength, int[] patternBitmask, int tollerance)

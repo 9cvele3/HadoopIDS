@@ -65,35 +65,11 @@ public class Rule
 		}
 		else
 		{
-			char[] tmpPayload = new char[packetPayload.length];
-			
-			for(int i = 0; i < packetPayload.length; i++)
-			{
-				tmpPayload[i] = Utils.convertToChar(packetPayload[i]);
-			}
-			
-			return MyersAlgorithm.Myers(tmpPayload, payloadOffset, payloadLen, patternLength, bitmask);
-		}
-	}
-	
-	public boolean payloadMatch(byte[] packetPayload)
-	{
-		return payloadMatch(packetPayload, 0, packetPayload.length);
-	}
-	
-	public boolean payloadMatch(char[] packetPayload, int payloadOffset, int payloadLen)
-	{
-		if (patternLength == 0)
-		{
-			return true;
-		}
-		else
-		{			
 			return MyersAlgorithm.Myers(packetPayload, payloadOffset, payloadLen, patternLength, bitmask);
 		}
 	}
 	
-	public boolean payloadMatch(char[] packetPayload)
+	public boolean payloadMatch(byte[] packetPayload)
 	{
 		return payloadMatch(packetPayload, 0, packetPayload.length);
 	}

@@ -21,12 +21,12 @@ public class TestRule {
 	public void RuleMatching(){
 		String payload = "asdfvafasdqazwsx.hsqasdfadsf";
 		Rule rule = new Rule(Parser.parseSingleSnortRule(ruleExample));
-		Assert.assertTrue(rule.payloadMatch(payload.toCharArray()));
+		Assert.assertTrue(rule.payloadMatch(payload.getBytes()));
 	}
 	
 	@Test
 	public void RuleMatchingBytes() {
-		char[] payload = new char[] {24, 3, 2, 0};
+		byte[] payload = new byte[] {24, 3, 2, 0};
 		Rule rule = new Rule(Parser.parseSingleSnortRule(ruleExampleBytes));
 		Assert.assertTrue(rule.payloadMatch(payload));
 	}

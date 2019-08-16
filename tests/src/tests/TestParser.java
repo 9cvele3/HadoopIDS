@@ -28,9 +28,16 @@ public class TestParser {
 	
 	@Test
 	public void byteMatching(){
-		char[] text = new char[]{12, 43, 23, 11, 10, 123, 23, 13, 15};
-		char[] pattern = new char[]{11, 10, 123, 23};
-		Assert.assertTrue(MyersAlgorithm.Myers(text, 0, text.length, pattern, 0));
+		byte[] text = new byte[]{12, 43, 23, 11, 10, 1, 2, 4, 3, 3, 1, 2, 4, 123, 23, 13, 15};
+		char[] pattern = new char[]{1, 2, 4, 3, 3, 1, 2, 4};
+		int[] patternBitmask = new int[256];	patternBitmask[1]=33; patternBitmask[2]=66; patternBitmask[3]=24; patternBitmask[4]=132;
+		Assert.assertTrue(MyersAlgorithm.Myers(text, 0, text.length, pattern.length, patternBitmask));
+
+		byte[] text2 = new byte[]{12, 43, 23, 11, 10, 1, 2, 4, 30, 3, 1, 2, 4, 123, 23, 13, 15};
+		Assert.assertFalse(MyersAlgorithm.Myers(text2, 0, text2.length, pattern.length, patternBitmask, 0));
+		
+		byte[] text3 = new byte[]{12, 43, 23, 11, 10, 1, 2, 4, 30, 3, 1, 2, 4, 123, 23, 13, 15};
+		Assert.assertTrue(MyersAlgorithm.Myers(text3, 0, text3.length, pattern.length, patternBitmask, 1));
 	}
 	
 	//@Test

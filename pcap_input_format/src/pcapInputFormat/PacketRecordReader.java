@@ -77,16 +77,13 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	    
 	    start = split.getStart();
 	    end = start + split.getLength();
+	    System.out.println("Split start: " + start + " Split end: " + end + " Split len: "  + split.getLength());
 	    final Path file = split.getPath();
 	    
 	    // open the file and seek to the start of the split
 	    FileSystem fs = file.getFileSystem(job);
 	    fileIn = fs.open(split.getPath());
 	    
-	    //seek to the start of the input split, skip pcap header
-	    //System.out.println("Start of split: " + start);
-	    //start += PcapUtilities.PCAP_HEADER_SIZE;//This is not needed
-	    fileIn.seek(start);
 	    this.pos = start;
 	}
 
@@ -94,6 +91,20 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	public boolean nextKeyValue() 
 			throws IOException, InterruptedException 
 	{
+		if (pos == start)
+		{
+			byte[] searchStart = new byte[PcapUtils.MAX_PACKET_LEN];
+			fileIn.seek(start);
+			fileIn.read(searchStart, 0, PcapUtils.MAX_PACKET_LEN);
+			
+			try {
+				pos = start + PcapUtils.seekForBoundary(searchStart);
+				LOG.info("PacketRecordReader found valid start " + pos);
+			} catch (PcapException e) {
+				LOG.error("PacketRecordReader valid start is not found!");
+				e.printStackTrace();
+			}
+		}
 		
 		if (pos >= end)
 		{
@@ -110,8 +121,13 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 			{// valuePacketBytes
 				try 
 				{
-					int len = PcapUtils.readPacketHeader(fileIn);
+					int len = PcapUtils.readPacketHeader(fileIn, false);
+
 					pos += PcapUtils.PACKET_HEADER_SIZE;
+					
+					if (pos + len > end) // it is not >= here
+						return false; 
+					
 					fileIn.seek(pos);
 					// System.out.println("PackerRecordReader len: " + len);
 					

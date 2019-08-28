@@ -25,7 +25,11 @@ public class WholePcapPacketInfo{
 	
 	public static WholePcapPacketInfo decode(byte[] packetData, int offset)
 	{
+		if (offset + 12 + 4 >= packetData.length )
+			return null;
+		
 		WholePcapPacketInfo res = new WholePcapPacketInfo(packetData, offset);
+		
 		res.len = Utils.getIntFromByteArray(packetData, offset + 8);
 		res.origLen = Utils.getIntFromByteArray(packetData, offset + 12);
 		

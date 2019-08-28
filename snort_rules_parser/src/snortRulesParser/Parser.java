@@ -12,21 +12,6 @@ import java.util.regex.Pattern;
 
 public class Parser 
 {
-	
-	public static void main(String[] args) 
-	{
-		if(args.length != 2)
-		{
-			System.err.println("Arguments: <input_snort_rule_file> <output_parsed_file>");
-			return;
-		}
-		
-		String snortRulesFilePath = args[0];
-		String reducedSnortRules  = args[1];
-		parseSnortRules(snortRulesFilePath, reducedSnortRules);
-		System.out.println("Parser finished!");
-	}
-	
 	public static void parseSnortRules(String rulesFilename, String distributedCashe) 
 	{
 		File rules = new File(rulesFilename);

@@ -1,5 +1,4 @@
 package ids;
-import utils.Utils;
 import utils.Protocol;
 
 import java.io.IOException;

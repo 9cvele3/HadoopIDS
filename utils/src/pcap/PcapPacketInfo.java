@@ -74,6 +74,10 @@ public class PcapPacketInfo {
 		PcapPacketInfo res = new PcapPacketInfo(packetBytes, offset, packetLen);
 		
 		res.payloadOffset += 2 * PcapUtils.MAC_ADDRESS_LEN_IN_BYTES;
+		
+		if (res.payloadOffset + 1 >= packetBytes.length )
+			return null;
+		
 		res.etherType = 256 * Utils.convertToUnsignedInt(packetBytes[res.payloadOffset])
 						+ Utils.convertToUnsignedInt(packetBytes[res.payloadOffset + 1]);
 					

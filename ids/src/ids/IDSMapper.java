@@ -58,7 +58,6 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 			throws IOException, InterruptedException
 	{
 		byte[] packetBytes = value.getBytes();
-		assert value.getLength() == packetBytes.length;
 		
 		PcapPacketInfo packet = PcapPacketInfo.decode(packetBytes);
 		

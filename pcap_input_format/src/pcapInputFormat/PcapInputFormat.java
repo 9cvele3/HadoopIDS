@@ -40,11 +40,9 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 	public List<InputSplit> getSplits(JobContext job) 
 			throws IOException 
 	{
-
 		long minSize = Math.max(getFormatMinSplitSize(), getMinSplitSize(job));
 	    long maxSize = getMaxSplitSize(job);
 	    LOG.info("maxSize InputSplit: " + maxSize);
-	    final long limitForSpliting = 125 * 1024 * 1024;//128 MB
 
 	    List<InputSplit> splits = new ArrayList<InputSplit>();
 		
@@ -55,23 +53,16 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		      
 		      System.out.println("Processing file: " + path + " length in bytes: " + length);
 		      
-		      if (
-		    		  (length != 0) 						// not a zero length file
-		    		  && (length > limitForSpliting)		// larger than 128MB (one block) 
-		    	)
+		      if (length != 0)
 		      { 
 		    	  long blockSize = fileStatus.getBlockSize();
 		    	  long splitSize = computeSplitSize(blockSize, minSize, maxSize);
 		
 		    	  // deterministicBoundarySearch(splits, job, fileStatus, splitSize);
-		    	  probabilisticBoundarySearch(splits, job, fileStatus, splitSize);
+		    	  // probabilisticBoundarySearch(splits, job, fileStatus, splitSize);
+		    	  simpleBoundarySearch(splits, job, fileStatus, blockSize);
 		      }
-		      else if (length != 0) //if it is unsplitable
-    		  {
-		    	  LOG.info("PcapInputFormat: File is not splitable, adding the whole file as InputSplit!");
-		    	  splits.add(getFileSplit(job, fileStatus, pcap.PcapUtils.PCAP_HEADER_SIZE, length - pcap.PcapUtils.PCAP_HEADER_SIZE));
-    		  }
-    		  else //if it is zero length file
+    		  else
     		  { 
     			  LOG.info("PcapInputFormat: File iz zero length, not creating an InputSplit!");
     		  }
@@ -81,6 +72,38 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 		return splits;
 	}
 
+	private void simpleBoundarySearch(List<InputSplit> splits, JobContext job, FileStatus fileStatus, long splitSize) 
+			throws IOException
+	{
+		LOG.info("Using simple boundary search!");
+		
+	    Path path 		= fileStatus.getPath();
+	    FileSystem fs 	= path.getFileSystem(job.getConfiguration());
+	    long length 	= fileStatus.getLen();
+		FSDataInputStream fileIn = fs.open(path);
+
+		try
+		{
+			PcapUtils.checkPcapHeader(fileIn);
+			
+			long startOfSplit = PcapUtils.PCAP_HEADER_SIZE;
+			long bytesRemaining = length - startOfSplit;
+			
+			while (bytesRemaining > 0)
+			{
+				long splitCurrentSize = bytesRemaining > splitSize ? splitSize: bytesRemaining;
+				splits.add(getFileSplit(job, fileStatus, startOfSplit, splitCurrentSize));
+				LOG.info("Added new InputSplit. Start offset: " + startOfSplit + " size in bytes: " + splitCurrentSize);
+				startOfSplit += splitCurrentSize;
+				bytesRemaining -= splitCurrentSize;
+			}
+		}
+		catch (pcap.PcapException e)//try to process other pcaps if this one is invalid 
+		{
+			LOG.error("PcapInputFormat simple approach error: " + e.getMessage());
+		}
+	}
+	
 	private void deterministicBoundarySearch(List<InputSplit> splits, JobContext job, FileStatus fileStatus, long splitSize) 
 			throws IOException {
 		  LOG.info("Using deterministic boundary search!");
@@ -106,7 +129,7 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 				  {
 					  fileIn.seek(bytesRead);//absolute, not relative
 					  
-					  int packetLen = PcapUtils.readPacketHeader(fileIn);
+					  int packetLen = PcapUtils.readPacketHeader(fileIn, false);
 					  //System.out.println(packetLen);
 					  bytesRead += pcap.PcapUtils.PACKET_HEADER_SIZE + packetLen;
 					  
@@ -203,9 +226,4 @@ public class PcapInputFormat extends FileInputFormat<LongWritable, BytesWritable
 	    
 	    return new FileSplit(path, start, length, hostArr);
 	}
-	
-	public int convertToUnsignedInt(byte b)
-	{
-		return b < 0 ? (256 + b) : b;
-	}	
 }

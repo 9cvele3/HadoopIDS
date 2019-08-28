@@ -112,16 +112,16 @@ public final class PcapUtils {
         guint32 orig_len;       // actual length of packet
 	} pcaprec_hdr_t;
 	*/
-	public static int readPacketHeader(DataInputStream fs) 
+	public static int readPacketHeader(DataInputStream fs, boolean printDebug) 
 			throws IOException, PcapException
 	{
-		/*int ts_sec 	=*/ 	fs.readInt();
-		/*int ts_usec 	=*/		fs.readInt();
-		int incl_len 	=		Utils.ntohl(fs.readInt());
-		//int orig_len 	= 	fs.readInt();
+		int ts_sec 		= 	fs.readInt();
+		int ts_usec 	=	fs.readInt();
+		int incl_len 	=	Utils.ntohl(fs.readInt());
+		int orig_len 	= 	fs.readInt();
 
-		//System.out.println("ts_sec: " + ts_sec + " ts_usec: " + ts_usec + " incl_len: " + incl_len + " orig_len: " + orig_len);
-		//System.out.println("incl_len: " + incl_len);
+		if (printDebug)
+			System.out.println("ts_sec: " + ts_sec + " ts_usec: " + ts_usec + " incl_len: " + incl_len + " orig_len: " + orig_len);
 		
 		if (incl_len > PcapUtils.MAX_PACKET_LEN)
 		{

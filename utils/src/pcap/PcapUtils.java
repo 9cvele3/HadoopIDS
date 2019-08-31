@@ -86,7 +86,7 @@ public final class PcapUtils {
 			}
 		}
 		
-		byte[] unimportantBytes = new byte[16];
+		byte[] unimportantBytes = new byte[16]; // version_major, version_minor, thiszone, sigfigs, snaplen
 		int numBytesRead = fs.read(unimportantBytes, 0, 16);
 		
 		if (numBytesRead < 16)
@@ -94,9 +94,10 @@ public final class PcapUtils {
 			throw new PcapException("Pcap header is too short!");
 		}
 		
-		/*
+
 		int network = fs.readInt();
-		 
+
+		/*
 		if(network != DATA_LINK_TYPE_ETHERNET)
 		{
 			throw new PcapException("Only Ethernet is supported at this moment");

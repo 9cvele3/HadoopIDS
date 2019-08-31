@@ -24,8 +24,9 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	private long pos;
 	private long end;
 	
-	private LongWritable keyPacketOffset = null;
-	private BytesWritable valuePacketBytes = null;
+	private LongWritable keyPacketOffset = new LongWritable();
+	private BytesWritable valuePacketBytes = new BytesWritable();
+	private byte[] tmpBytes = new byte[PcapUtils.MAX_PACKET_LEN];
 	
 	FSDataInputStream fileIn = null;
 	
@@ -71,19 +72,19 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	public void initialize(InputSplit genericSplit, TaskAttemptContext context) 
 			throws IOException, InterruptedException 
 	{
-		
 		FileSplit split = (FileSplit) genericSplit;
 	    Configuration job = context.getConfiguration();
 	    
 	    start = split.getStart();
 	    end = start + split.getLength();
-	    System.out.println("Split start: " + start + " Split end: " + end + " Split len: "  + split.getLength());
+	    LOG.info("Split start: " + start + " Split end: " + end + " Split len: "  + split.getLength());
 	    final Path file = split.getPath();
 	    
 	    // open the file and seek to the start of the split
 	    FileSystem fs = file.getFileSystem(job);
 	    fileIn = fs.open(split.getPath());
 	    
+	    valuePacketBytes.setCapacity(PcapUtils.MAX_PACKET_LEN);
 	    this.pos = start;
 	}
 
@@ -93,13 +94,22 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	{
 		if (pos == start)
 		{
-			byte[] searchStart = new byte[PcapUtils.MAX_PACKET_LEN];
 			fileIn.seek(start);
-			fileIn.read(searchStart, 0, PcapUtils.MAX_PACKET_LEN);
+			fileIn.read(tmpBytes, 0, PcapUtils.MAX_PACKET_LEN);
 			
 			try {
-				pos = start + PcapUtils.seekForBoundary(searchStart);
-				LOG.info("PacketRecordReader found valid start " + pos);
+				pos = start + PcapUtils.seekForBoundary(tmpBytes);
+				
+				if (pos >= end)
+				{
+					LOG.error("Valid start not found!");
+					return false;
+				}
+				else
+				{
+					fileIn.seek(pos);
+					LOG.info("PacketRecordReader found valid start " + pos);
+				}
 			} catch (PcapException e) {
 				LOG.error("PacketRecordReader valid start is not found!");
 				e.printStackTrace();
@@ -112,37 +122,33 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 		}
 		else
 		{
-			fileIn.seek(pos);
-			
-			{// keyPacketOffset
-				keyPacketOffset = new LongWritable(pos);
-			}
+			keyPacketOffset.set(pos);
 			
 			{// valuePacketBytes
 				try 
 				{
 					int len = PcapUtils.readPacketHeader(fileIn, false);
+					
+					if (len <= 0)
+						throw new PcapException("Invalid len: " + len + " at offset: " + pos);
 
 					pos += PcapUtils.PACKET_HEADER_SIZE;
 					
 					if (pos + len > end) // it is not >= here
 						return false; 
 					
-					fileIn.seek(pos);
 					// System.out.println("PackerRecordReader len: " + len);
 					
-					valuePacketBytes = new BytesWritable();
-					
-					// valuePacketBytes.setCapacity(len);
-					// valuePacketBytes.setSize(len);
-					byte[] payload = new byte[len];
-					fileIn.read(payload, 0, len);
+					fileIn.read(tmpBytes, 0, len);
 				
-					// both are needed, otherwise different size for byte[] tmp = valuePacketBytes.getBytes()
-					valuePacketBytes.setCapacity(len); 
+					// both Capacity and Size are needed, otherwise different size for byte[] tmp = valuePacketBytes.getBytes()
+					// Change the capacity of the backing storage.
+					
+					// Change the size of the buffer.
 					valuePacketBytes.setSize(len);
 					
-					valuePacketBytes.set(payload, 0, len);
+					// Set the value to a copy of the given byte range
+					valuePacketBytes.set(tmpBytes, 0, len);
 					
 					if(valuePacketBytes.getLength() != len)
 					{

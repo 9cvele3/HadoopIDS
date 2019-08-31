@@ -32,6 +32,7 @@ public class PcapPacketCounter
 			
 			job.setMapperClass(CounterMapper.class);
 			job.setReducerClass(CounterReducer.class);
+			job.setCombinerClass(CounterReducer.class);
 			job.setNumReduceTasks(1);
 			
 			job.setInputFormatClass(PcapInputFormat.class);

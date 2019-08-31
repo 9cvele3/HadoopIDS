@@ -43,10 +43,14 @@ public class IDS
 	public int run(String[] args) 
 			throws Exception 
 	{
-		//Job job = Job.getInstance();
 		Job job = Job.getInstance(getConf());
+		
+		job.setProfileEnabled(true);
+		//job.setProfileParams(value);
+		//job.setProfileTaskRange(isMap, newValue);
+		
 		job.setJarByClass(IDS.class);
-		job.setJobName("IDS");
+		job.setJobName("IDS"); // visible in JobHistoryServer
 		
 		System.out.println("Arguments " + args[0] + " " + args[1]);
 		FileInputFormat.addInputPath(job, new Path(args[0]));

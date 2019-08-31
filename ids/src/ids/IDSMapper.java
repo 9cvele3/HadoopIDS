@@ -24,6 +24,7 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 	String delimiter = ", "; //Used for Reduce key formation
 	
 	private final LongWritable ONE = new LongWritable(1);
+	private Text outputKey = new Text();
 	
 	@Override
 	protected void setup(Context context) throws IOException 
@@ -94,14 +95,11 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 			{
 				if (r.checkAgainstPacket(packet))
 				{
-					context.write(
-						new Text(
-									r.getSid() + delimiter + packet.srcIP + ":" 
-								+ 	r.getSrcPort() + delimiter + packet.dstIP 
-								+ 	":" + r.getDestPort()
-						),
-						ONE
-					);
+					outputKey.set(r.getSid() + delimiter + packet.srcIP + ":" 
+							+ 	r.getSrcPort() + delimiter + packet.dstIP 
+							+ 	":" + r.getDestPort());
+					
+					context.write(outputKey, ONE);
 				}
 			}
 		}

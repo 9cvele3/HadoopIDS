@@ -8,6 +8,8 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 public class IDSReducer extends Reducer<Text, LongWritable, Text, LongWritable> 
 {
+	private Text outputKey = new Text();
+	private LongWritable outputValue = new LongWritable();
 
 	public void reduce(Text key, Iterable<LongWritable> values, Context context) 
 			throws IOException, InterruptedException 
@@ -19,6 +21,9 @@ public class IDSReducer extends Reducer<Text, LongWritable, Text, LongWritable>
 			numOfOccurences += value.get();
 		}
 		
-		context.write(new Text(key), new LongWritable(numOfOccurences));
+		outputKey.set(key);
+		outputValue.set(numOfOccurences);
+		
+		context.write(outputKey, outputValue);
 	}
 }

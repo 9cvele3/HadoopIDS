@@ -45,7 +45,7 @@ public class IDS
 	{
 		Job job = Job.getInstance(getConf());
 		
-		job.setProfileEnabled(true);
+		//job.setProfileEnabled(true);
 		//job.setProfileParams(value);
 		//job.setProfileTaskRange(isMap, newValue);
 		

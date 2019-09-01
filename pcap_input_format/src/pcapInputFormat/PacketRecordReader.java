@@ -29,6 +29,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	private byte[] tmpBytes = new byte[PcapUtils.MAX_PACKET_LEN];
 	
 	FSDataInputStream fileIn = null;
+	int numPackets = 0;
 	
 	@Override
 	public void close() 
@@ -87,7 +88,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	    valuePacketBytes.setCapacity(PcapUtils.MAX_PACKET_LEN);
 	    this.pos = start;
 	}
-
+	
 	@Override
 	public boolean nextKeyValue() 
 			throws IOException, InterruptedException 
@@ -127,11 +128,11 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 			{// valuePacketBytes
 				try 
 				{
+					if (pos != fileIn.getPos())
+						fileIn.seek(pos);
+					
 					int len = PcapUtils.readPacketHeader(fileIn, false);
 					
-					if (len <= 0)
-						throw new PcapException("Invalid len: " + len + " at offset: " + pos);
-
 					pos += PcapUtils.PACKET_HEADER_SIZE;
 					
 					if (pos + len > end) // it is not >= here
@@ -139,8 +140,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 					
 					// System.out.println("PackerRecordReader len: " + len);
 					
-					fileIn.read(tmpBytes, 0, len);
-				
+					int bytesRead = fileIn.read(tmpBytes, 0, len);
+					
 					// both Capacity and Size are needed, otherwise different size for byte[] tmp = valuePacketBytes.getBytes()
 					// Change the capacity of the backing storage.
 					
@@ -159,7 +160,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 				} 
 				catch (PcapException e) 
 				{
-					LOG.error("PcapRecordReader: " + e.getMessage());
+					LOG.error("PcapRecordReader exception at offset: " + fileIn.getPos() + e.getMessage());
 					return false;
 				}
 			}

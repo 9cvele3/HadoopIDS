@@ -24,6 +24,15 @@ public class PcapPacketCounter
 		try 
 		{
 			Job job = Job.getInstance();
+			
+			/*
+			{
+				job.setProfileEnabled(true);
+				job.setProfileParams("-agentlib:hprof=depth=8,cpu=samples,heap=sites,force=n,thread=y,verbose=n,file=%s");
+				job.setProfileTaskRange(true, "0-20");
+			}			
+			*/
+			
 			job.setJarByClass(PcapPacketCounter.class);
 			job.setJobName("PcapPacketCounter");
 			

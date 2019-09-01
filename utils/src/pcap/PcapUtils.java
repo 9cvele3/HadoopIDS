@@ -124,14 +124,9 @@ public final class PcapUtils {
 		if (printDebug)
 			System.out.println("ts_sec: " + ts_sec + " ts_usec: " + ts_usec + " incl_len: " + incl_len + " orig_len: " + orig_len);
 		
-		if (incl_len > PcapUtils.MAX_PACKET_LEN)
+		if (incl_len > PcapUtils.MAX_PACKET_LEN || incl_len <= 0)
 		{
-			throw new PcapException("Packet len " + incl_len + " is larger than maximum packet len");
-		}
-		
-		if(incl_len == 0)
-		{
-			throw new PcapException("Packet len is 0");
+			throw new PcapException("Invalid packet len " + incl_len);
 		}
 		
 		return incl_len;

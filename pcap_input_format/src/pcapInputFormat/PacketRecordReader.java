@@ -61,6 +61,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	{
 	    if (start == end) 
 	    {
+	    	LOG.warn("start == end == " + start);
 	        return 0.0f;
 	    } 
 	    else
@@ -87,6 +88,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	    
 	    valuePacketBytes.setCapacity(PcapUtils.MAX_PACKET_LEN);
 	    this.pos = start;
+	    
+	    this.numPackets = 0;
 	}
 	
 	@Override
@@ -95,6 +98,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 	{
 		if (pos == start)
 		{
+			LOG.info("Initial seek to start of InputSplit " + start);
+			
 			fileIn.seek(start);
 			fileIn.read(tmpBytes, 0, PcapUtils.MAX_PACKET_LEN);
 			
@@ -119,52 +124,60 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 		
 		if (pos >= end)
 		{
+			LOG.warn("pos >= end " + pos + " " + end);
 			return false;
 		}
 		else
 		{
 			keyPacketOffset.set(pos);
 			
-			{// valuePacketBytes
-				try 
+			try 
+			{
+				if (pos != fileIn.getPos())
 				{
-					if (pos != fileIn.getPos())
-						fileIn.seek(pos);
-					
-					int len = PcapUtils.readPacketHeader(fileIn, false);
-					
-					pos += PcapUtils.PACKET_HEADER_SIZE;
-					
-					if (pos + len > end) // it is not >= here
-						return false; 
-					
-					// System.out.println("PackerRecordReader len: " + len);
-					
-					int bytesRead = fileIn.read(tmpBytes, 0, len);
-					
-					// both Capacity and Size are needed, otherwise different size for byte[] tmp = valuePacketBytes.getBytes()
-					// Change the capacity of the backing storage.
-					
-					// Change the size of the buffer.
-					valuePacketBytes.setSize(len);
-					
-					// Set the value to a copy of the given byte range
-					valuePacketBytes.set(tmpBytes, 0, len);
-					
-					if(valuePacketBytes.getLength() != len)
-					{
-						LOG.error("Length does not match!");
-					}
-					
-					pos += len;
-				} 
-				catch (PcapException e) 
+					LOG.warn("Need to seek!");
+					fileIn.seek(pos);
+				}
+
+				int len = PcapUtils.readPacketHeader(fileIn, false);
+
+				pos += PcapUtils.PACKET_HEADER_SIZE;
+
+				if (pos + len > end) // it is not >= here
 				{
-					LOG.error("PcapRecordReader exception at offset: " + fileIn.getPos() + e.getMessage());
+					LOG.warn("pos + len > end");
 					return false;
 				}
+
+				int bytesRead = fileIn.read(tmpBytes, 0, len);
+
+				// both Capacity and Size are needed, otherwise different size for byte[] tmp = valuePacketBytes.getBytes()
+				// Change the capacity of the backing storage.
+
+				// Change the size of the buffer.
+				valuePacketBytes.setSize(len);
+
+				// Set the value to a copy of the given byte range
+				valuePacketBytes.set(tmpBytes, 0, len);
+
+				if(valuePacketBytes.getLength() != len)
+				{
+					LOG.error("Length does not match!");
+				}
+				else
+				{
+					// LOG.info("Packet " + this.numPackets + " at offset pos " + pos + " and with lenght len " + len);
+					this.numPackets++;
+				}
+
+				pos += len;
+			} 
+			catch (PcapException e) 
+			{
+				LOG.error("PcapRecordReader exception at offset: " + fileIn.getPos() + e.getMessage());
+				return false;
 			}
-			
+
 			return true;
 		}
 	}

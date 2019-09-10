@@ -49,11 +49,11 @@ public class Rule
 	
 	public boolean checkSrcAndDest(String SrcIP, String DestIP, String SrcPort, String DestPort) 
 	{
-		return 
-					(srcIP.equalsIgnoreCase("any") 		|| srcIP.equalsIgnoreCase(SrcIP))
-				&&	(destIP.equalsIgnoreCase("any") 	|| destIP.equalsIgnoreCase(DestIP))
-				&&	(srcPort.equalsIgnoreCase("any") 	|| srcPort.equalsIgnoreCase(SrcPort))
-				&&	(destPort.equalsIgnoreCase("any") 	|| destPort.equalsIgnoreCase(DestPort));
+		return
+					(srcPort.equalsIgnoreCase("any") 	|| srcPort.equalsIgnoreCase(SrcPort))
+				&&	(destPort.equalsIgnoreCase("any") 	|| destPort.equalsIgnoreCase(DestPort))
+				&&	(srcIP.equalsIgnoreCase("any") 		|| srcIP.equalsIgnoreCase(SrcIP))
+				&&	(destIP.equalsIgnoreCase("any") 	|| destIP.equalsIgnoreCase(DestIP));
 	}
 	
 	public boolean payloadMatch(byte[] packetPayload, int payloadOffset, int payloadLen)

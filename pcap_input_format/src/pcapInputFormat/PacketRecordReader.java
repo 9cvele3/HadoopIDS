@@ -125,6 +125,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 		if (pos >= end)
 		{
 			LOG.warn("pos >= end " + pos + " " + end);
+			LOG.info("numPackets: " + numPackets);
 			return false;
 		}
 		else
@@ -135,7 +136,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 			{
 				if (pos != fileIn.getPos())
 				{
-					LOG.warn("Need to seek!");
+					LOG.warn("Need to seek! pos: " + pos + " fileIn.getPos() " + fileIn.getPos());
 					fileIn.seek(pos);
 				}
 
@@ -145,7 +146,8 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 
 				if (pos + len > end) // it is not >= here
 				{
-					LOG.warn("pos + len > end");
+					LOG.warn("pos + len > end" + "pos: " + pos + " len: " + len + " end: " + end);
+					LOG.info("numPackets: " + numPackets);
 					return false;
 				}
 
@@ -175,6 +177,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 			catch (PcapException e) 
 			{
 				LOG.error("PcapRecordReader exception at offset: " + fileIn.getPos() + e.getMessage());
+				LOG.info("numPackets: " + numPackets);
 				return false;
 			}
 

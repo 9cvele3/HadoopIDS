@@ -21,7 +21,7 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 {
 	HashMap<Protocol, List<Rule>> rules = new HashMap<Protocol, List<Rule>>();
 		
-	String delimiter = ", "; //Used for Reduce key formation
+	private final String delimiter = ", "; //Used for Reduce key formation
 	
 	private final LongWritable ONE = new LongWritable(1);
 	private Text outputKey = new Text();

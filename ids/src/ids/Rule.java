@@ -89,6 +89,22 @@ public class Rule
 	public String getSrcPort() { return srcPort; }
 	public String getDestIP() { return destIP; }
 	public String getDestPort() { return destPort; }
+	
+	// Returns 0 if destPort is 'any'
+	public Integer getDestPortInt() 
+	{ 
+		int tmp = 0;
+		
+		try
+		{
+			tmp = Integer.parseInt(destPort);
+		}
+		catch(Exception exc)
+		{}
+		
+		return tmp;
+	}
+	
 	public int getPatternLength() { return patternLength;}
 	
 }

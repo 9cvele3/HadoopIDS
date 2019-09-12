@@ -19,12 +19,30 @@ import pcap.PcapUtils;
 
 public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWritable> 
 {
-	HashMap<Protocol, List<Rule>> rules = new HashMap<Protocol, List<Rule>>();
-		
+	HashMap<Integer, List<Rule>> tcpRules = new HashMap<Integer, List<Rule>>();
+	HashMap<Integer, List<Rule>> udpRules = new HashMap<Integer, List<Rule>>();
+
 	private final String delimiter = ", "; //Used for Reduce key formation
 	
 	private final LongWritable ONE = new LongWritable(1);
+	private final Integer ZERO = new Integer(0);
 	private Text outputKey = new Text();
+	
+	private void addRule(HashMap<Integer, List<Rule>> rules, Rule r)
+	{
+		Integer destPort = r.getDestPortInt();
+		
+		if (rules.containsKey(destPort))
+		{
+			rules.get(destPort).add(r);
+		}
+		else 
+		{
+			ArrayList<Rule> ruleList = new ArrayList<Rule>();
+			ruleList.add(r);
+			rules.put(destPort, ruleList);
+		}
+	}
 	
 	@Override
 	protected void setup(Context context) throws IOException 
@@ -35,19 +53,16 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 		
 		while((line = bfr.readLine()) != null) 
 		{
-//			System.out.println(line);
 			Rule r = new Rule(line);
 			Protocol rProto = r.getProtocol();
 			
-			if(rules.containsKey(rProto))
+			if (rProto == Protocol.TCP)
 			{
-				rules.get(rProto).add(r);
+				addRule(tcpRules, r);
 			}
-			else 
+			else if (rProto == Protocol.UDP)
 			{
-				ArrayList<Rule> ruleList = new ArrayList<Rule>();
-				ruleList.add(r);
-				rules.put(rProto, ruleList);
+				addRule(udpRules, r);
 			}
 		}
 		
@@ -73,15 +88,18 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 	{
 		assert packet != null;
 		
-		List<Rule> ruleList = null;
+		List<Rule> ruleList = null;		// rules for specific protocol and destination port
+		List<Rule> ruleListAny = null;	// rules for specific protocol and 'any' destination port
 		
 		if (packet.ipProto == PcapUtils.IP_PROTO_TCP)
 		{
-			ruleList = rules.get(Protocol.TCP);
+			ruleList = tcpRules.get(packet.dstPort);
+			ruleListAny = tcpRules.get(ZERO);
 		}
 		else if (packet.ipProto == PcapUtils.IP_PROTO_UDP)
 		{
-			ruleList = rules.get(Protocol.UDP);
+			ruleList = udpRules.get(packet.dstPort);
+			ruleListAny = udpRules.get(ZERO);
 		}
 		else 
 		{
@@ -89,6 +107,13 @@ public class IDSMapper extends Mapper<LongWritable, BytesWritable, Text, LongWri
 			return;
 		}
 		
+		checkAgainstList(ruleList, packet, context);
+		checkAgainstList(ruleListAny, packet, context);
+	}
+	
+	private void checkAgainstList(List<Rule> ruleList, PcapPacketInfo packet, Context context)
+			throws IOException, InterruptedException
+	{
 		if (ruleList != null && !ruleList.isEmpty()) 
 		{
 			for (Rule r : ruleList)

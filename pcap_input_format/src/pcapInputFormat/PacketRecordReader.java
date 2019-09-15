@@ -136,7 +136,7 @@ public class PacketRecordReader extends RecordReader<LongWritable, BytesWritable
 			{
 				if (pos != fileIn.getPos())
 				{
-					LOG.warn("Need to seek! pos: " + pos + " fileIn.getPos() " + fileIn.getPos());
+					// LOG.warn("Need to seek! pos: " + pos + " fileIn.getPos() " + fileIn.getPos());
 					fileIn.seek(pos);
 				}
 
